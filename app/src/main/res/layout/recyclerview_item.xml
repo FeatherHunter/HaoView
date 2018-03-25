@@ -6,10 +6,10 @@
     android:layout_height="match_parent"
     tools:context="com.hao.haoview.MainActivity">
 
-    <com.hao.haoview.HaoRecyclerView
-        android:id="@+id/recycler_view"
+    <ImageView
+        android:id="@+id/image"
         android:layout_width="match_parent"
-        android:layout_height="300dp">
-    </com.hao.haoview.HaoRecyclerView>
+        android:layout_height="match_parent"
+        android:src="@drawable/dog"/>
 
 </android.support.constraint.ConstraintLayout>
