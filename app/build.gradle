@@ -18,6 +18,9 @@ android {
                 cppFlags ""
             }
         }
+
+        renderscriptTargetApi 19
+        renderscriptSupportModeEnabled true
     }
     buildTypes {
         release {

@@ -36,9 +36,7 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
-
         ImageView mImageView;
-
         public ViewHolder(View itemView) {
             super(itemView);
             mImageView = itemView.findViewById(R.id.image);
@@ -51,12 +49,26 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
     }
 
     @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final ViewHolder viewHolder = (ViewHolder) holder;
         if(mDatas.get(position) instanceof String){ //为URL
+
         }else if(mDatas.get(position) instanceof Drawable){
             viewHolder.mImageView.setImageDrawable((Drawable) mDatas.get(position));
         }
+        viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mOnItemClickListener.onItemClick(viewHolder.mImageView, position);
+            }
+        });
+        viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mOnItemClickListener.onItemLongClick(viewHolder.mImageView, position);
+                return false;
+            }
+        });
     }
 
     @Override

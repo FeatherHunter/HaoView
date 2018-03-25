@@ -25,6 +25,13 @@ public class GalleryItemDecoration extends RecyclerView.ItemDecoration {
     public static int mPageMargin = 10;          // 每一个页面默认页边距(左右或者上下)
     public static int mOtherPageVisibleWidth = 50; // 左右或者上下两个Page的能见宽度
 
+    public void setPageMargin(int pageMargin){
+        mPageMargin = pageMargin;
+    }
+    public void setOtherPageVisibleWidth(int pageVisibleWidth){
+        mOtherPageVisibleWidth = pageVisibleWidth;
+    }
+
     /**=====================================================
      * 2-把当前页面的Item移动到左侧Item的位置所需要的距离(Item宽度 + 2个mPageMargin)
      *=====================================================*/

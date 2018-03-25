@@ -40,6 +40,7 @@ public class HaoRecyclerView extends RecyclerView{
     public @interface SnapHelper{};
     public static final int LinearSnapHelper = 0;
     public static final int PagerSnapHelper = 1;
+    private int mSnapHelper = LinearSnapHelper;
     /**========================================================================*
      * 3-整个RecyclerView在X轴上滑动的全部距离累加
      *  例如：滑动到第10个Item-mSumScrollX = 当前Item滑动到左侧需要的距离 * 9
@@ -75,6 +76,17 @@ public class HaoRecyclerView extends RecyclerView{
     //当前ItemView的Position
     private int mCurItemPosition = 0;
 
+    private GalleryItemDecoration mGalleryItemDecoration;
+
+    public HaoRecyclerView setPageMargin(int pageMargin){
+        mGalleryItemDecoration.setPageMargin(pageMargin);
+        return this;
+    }
+    public HaoRecyclerView setOtherPageVisibleWidth(int pageVisibleWidth){
+        mGalleryItemDecoration.setOtherPageVisibleWidth(pageVisibleWidth);
+        return this;
+    }
+
     public HaoRecyclerView(Context context) {
         super(context);
         initRecyclerView();
@@ -88,10 +100,10 @@ public class HaoRecyclerView extends RecyclerView{
         initRecyclerView();
     }
     private void initRecyclerView(){
-        //1. 默认采用LinearSnapHelper作为滑动居中辅助器
-        setSnapHelper(LinearSnapHelper);
+//        //1. 默认采用LinearSnapHelper作为滑动居中辅助器
+//        setSnapHelper(LinearSnapHelper);
         //2. 默认使用GalleryItemDecoration作为分割线
-        addItemDecoration(new GalleryItemDecoration());
+        addItemDecoration(mGalleryItemDecoration = new GalleryItemDecoration());
         //3. 设置滑动监听器
         addOnScrollListener(new GalleryScrollerListener());
         //4.
@@ -114,7 +126,8 @@ public class HaoRecyclerView extends RecyclerView{
      *      {@link HaoRecyclerView#LinearSnapHelper}: 能连续滑动多个页面
      *      {@link HaoRecyclerView#PagerSnapHelper} : 只能一次滑动一个页面
      *=================================================================================*/
-    public void setSnapHelper(@SnapHelper int snapHelperStyle){
+    public HaoRecyclerView setSnapHelper(@SnapHelper int snapHelperStyle){
+        mSnapHelper = snapHelperStyle;
         switch (snapHelperStyle){
             case LinearSnapHelper:{
                 new LinearSnapHelper().attachToRecyclerView(this);
@@ -125,6 +138,7 @@ public class HaoRecyclerView extends RecyclerView{
                 break;
             }
         }
+        return this;
     }
     /**=================================================================================*
      * 3-滑动监听器
@@ -249,6 +263,24 @@ public class HaoRecyclerView extends RecyclerView{
              * 3. 获得焦点时跳转到失去焦点时所在的ItemView
              *    1-需要得到正确的滑动总距离
              *==================================*/
+            switch (mSnapHelper){
+                case LinearSnapHelper:{
+                    break;
+                }
+                case PagerSnapHelper:{
+//                    if(mHasWindowFocus) {
+//                        // 1. 第一次运行需要滑动至第0项，避免第0项的margin不对
+//                        smoothScrollToPosition(0);
+//                    }else {
+//                        scrollToPosition(0);
+//                    }
+//                    // 2. 修正在滑动总量上的偏差。
+//                    mSumScrollX = 0;
+//                    mSumScrollY = 0;
+//                    resetSumScrollXY();
+                    return;
+                }
+            }
             if(mHasWindowFocus){
                 mSumScrollX = 0;
                 mSumScrollY = 0;
@@ -306,6 +338,10 @@ public class HaoRecyclerView extends RecyclerView{
     public HaoRecyclerView setAnimation(HaoAnimatible animation){
         mAnimation = animation;
         return this;
+    }
+
+    public int getPosition(){
+        return mCurItemPosition;
     }
 
 }
