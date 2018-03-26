@@ -23,66 +23,89 @@ import java.lang.annotation.RetentionPolicy;
  * Created by mr on 3/25/2018.
  */
 
-public class HaoRecyclerView extends RecyclerView{
-    /**=====================================*
+public class HaoRecyclerView extends RecyclerView {
+    /**
+     * =====================================*
      * 1-滑动距离百分比(比例越大, 滑动越快)
-     *   @see HaoRecyclerView#fling(int, int)
-     *=====================================*/
+     *
+     * @see HaoRecyclerView#fling(int, int)
+     * =====================================
+     */
     private float mFlingSpeedRatio = 1f;
-    /**===========================================================*
+
+    /**
+     * ===========================================================*
      * 2-SnapHelper滑动辅助器: 保证当前ViewItem在RecyclerView中居中
-     *   LinearSnapHelper: 能连续滑动多个页面
-     *   PagerSnapHelper: 一次只能滑动一个页面(类似ViewPager)
-     *   @see HaoRecyclerView#setSnapHelper(int)
-     *===========================================================*/
+     * LinearSnapHelper: 能连续滑动多个页面
+     * PagerSnapHelper: 一次只能滑动一个页面(类似ViewPager)
+     *
+     * @see HaoRecyclerView#setSnapHelper(int)
+     * ===========================================================
+     */
     @IntDef({LinearSnapHelper, PagerSnapHelper})
     @Retention(RetentionPolicy.SOURCE)
-    public @interface SnapHelper{};
+    public @interface SnapHelper {
+    }
+
+    ;
     public static final int LinearSnapHelper = 0;
     public static final int PagerSnapHelper = 1;
     private int mSnapHelper = LinearSnapHelper;
-    /**========================================================================*
+    /**
+     * ========================================================================*
      * 3-整个RecyclerView在X轴上滑动的全部距离累加
-     *  例如：滑动到第10个Item-mSumScrollX = 当前Item滑动到左侧需要的距离 * 9
-     *========================================================================*/
+     * 例如：滑动到第10个Item-mSumScrollX = 当前Item滑动到左侧需要的距离 * 9
+     * ========================================================================
+     */
     private int mSumScrollX = 0;
     private int mSumScrollY = 0;
 
-    /**========================================================================*
+    /**
+     * ========================================================================*
      * 4-滑动的方向
-     *========================================================================*/
+     * ========================================================================
+     */
     @IntDef({SLIDE_LEFT, SLIDE_RIGHT, SLIDE_TOP, SLIDE_BOTTOM})
     @Retention(RetentionPolicy.SOURCE)
-    public @interface SlideDirection{}
+    public @interface SlideDirection {
+    }
+
     private static final int SLIDE_LEFT = 1;    // 左滑
     private static final int SLIDE_RIGHT = 2;   // 右滑
     private static final int SLIDE_TOP = 3;     // 上滑
     private static final int SLIDE_BOTTOM = 4;  // 下滑
     // 滑动方向默认为右滑
-    private  int slideDirct = SLIDE_RIGHT;
+    private int slideDirct = SLIDE_RIGHT;
 
-    /**===============================*
+    /**
+     * ===============================*
      * 5-动画(需要实现HaoAnimatible接口)
-     *===============================*/
+     * ===============================
+     */
     private HaoAnimatible mAnimation;
-    /**===============================*
+    /**
+     * ===============================*
      * 6-RecyclerView是否持有焦点
-     *===============================*/
+     * ===============================
+     */
     public boolean mHasWindowFocus = false;
-    /**===============================*
+    /**
+     * ===============================*
      * 7-RecyclerView第一次运行需要修正第一页的Margin问题
-     *===============================*/
+     * ===============================
+     */
     private boolean isFirst = true;
     //当前ItemView的Position
     private int mCurItemPosition = 0;
 
     private GalleryItemDecoration mGalleryItemDecoration;
 
-    public HaoRecyclerView setPageMargin(int pageMargin){
+    public HaoRecyclerView setPageMargin(int pageMargin) {
         mGalleryItemDecoration.setPageMargin(pageMargin);
         return this;
     }
-    public HaoRecyclerView setOtherPageVisibleWidth(int pageVisibleWidth){
+
+    public HaoRecyclerView setOtherPageVisibleWidth(int pageVisibleWidth) {
         mGalleryItemDecoration.setOtherPageVisibleWidth(pageVisibleWidth);
         return this;
     }
@@ -91,15 +114,18 @@ public class HaoRecyclerView extends RecyclerView{
         super(context);
         initRecyclerView();
     }
+
     public HaoRecyclerView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         initRecyclerView();
     }
+
     public HaoRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         initRecyclerView();
     }
-    private void initRecyclerView(){
+
+    private void initRecyclerView() {
 //        //1. 默认采用LinearSnapHelper作为滑动居中辅助器
 //        setSnapHelper(LinearSnapHelper);
         //2. 默认使用GalleryItemDecoration作为分割线
@@ -110,64 +136,81 @@ public class HaoRecyclerView extends RecyclerView{
         setAnimation(new ScaleAnimation());
     }
 
-    /**=================================================================================*
+    /**
+     * =================================================================================*
      * 1-设置RecyclerView的滑动速度
-     *   重载fling方法，将横向和纵向的移动距离 x 滑动速度百分比{@link HaoRecyclerView#mFlingSpeedRatio} = 增速or减速后的移动距离。
+     * 重载fling方法，将横向和纵向的移动距离 x 滑动速度百分比{@link HaoRecyclerView#mFlingSpeedRatio} = 增速or减速后的移动距离。
+     *
      * @param velocityX 横向的移动距离(可为正负)
      * @param velocityY 纵向的移动距离
-     *=================================================================================*/
+     *                  =================================================================================
+     */
     @Override
     public boolean fling(int velocityX, int velocityY) {
-        return super.fling((int)(velocityX * mFlingSpeedRatio), (int)(velocityY * mFlingSpeedRatio));
+        return super.fling((int) (velocityX * mFlingSpeedRatio), (int) (velocityY * mFlingSpeedRatio));
     }
-    /**=================================================================================*
+
+    /**
+     * =================================================================================*
      * 2-设置滑动居中辅助器
+     *
      * @param snapHelperStyle 决定采用哪种滑动居中辅助器
-     *      {@link HaoRecyclerView#LinearSnapHelper}: 能连续滑动多个页面
-     *      {@link HaoRecyclerView#PagerSnapHelper} : 只能一次滑动一个页面
-     *=================================================================================*/
-    public HaoRecyclerView setSnapHelper(@SnapHelper int snapHelperStyle){
+     *                        {@link HaoRecyclerView#LinearSnapHelper}: 能连续滑动多个页面
+     *                        {@link HaoRecyclerView#PagerSnapHelper} : 只能一次滑动一个页面
+     *                        =================================================================================
+     */
+    public HaoRecyclerView setSnapHelper(@SnapHelper int snapHelperStyle) {
         mSnapHelper = snapHelperStyle;
-        switch (snapHelperStyle){
-            case LinearSnapHelper:{
+        switch (snapHelperStyle) {
+            case LinearSnapHelper: {
                 new LinearSnapHelper().attachToRecyclerView(this);
                 break;
             }
-            case PagerSnapHelper:{
+            case PagerSnapHelper: {
                 new PagerSnapHelper().attachToRecyclerView(this);
                 break;
             }
         }
         return this;
     }
-    /**=================================================================================*
+
+    /**
+     * =================================================================================*
      * 3-滑动监听器
-     *   1. onScrolled()在列表滑动时调用
-     *=================================================================================*/
-    private class GalleryScrollerListener extends RecyclerView.OnScrollListener{
+     * 1. onScrolled()在列表滑动时调用
+     * =================================================================================
+     */
+    private class GalleryScrollerListener extends RecyclerView.OnScrollListener {
+
         @Override
         public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
             super.onScrolled(recyclerView, dx, dy);
             //1. 没有获得焦点不进行滑动操作
-            if(!mHasWindowFocus){
+            if (!mHasWindowFocus) {
                 return;
             }
-            if(((LinearLayoutManager)getLayoutManager()).getOrientation() == LinearLayoutManager.HORIZONTAL){
+            if (((LinearLayoutManager) getLayoutManager()).getOrientation() == LinearLayoutManager.HORIZONTAL) {
                 //2. 水平滑动时的滑动动画
                 onHoritiontalScroll(dx);
-            }else{
+            } else {
                 //3. 垂直滑动时的滑动动画
                 onVerticalScroll(dy);
             }
         }
-        /**==============================
+
+        /**
+         * ==============================
          * 水平滑动时：
          * 1. 计算出当前ItemView的位置和滑动的百分比
          * 2. 进行动画处理{@link HaoAnimatible#startAnimation(RecyclerView, int, float)}
-         *==============================*/
+         * ==============================
+         */
         private void onHoritiontalScroll(final int dx) {
             //1. X轴方向上滑动的距离累加
             mSumScrollX += dx;
+            if (mSumScrollX < 0) {
+                mSumScrollX = 0;
+            }
             if (dx > 0) {
                 slideDirct = SLIDE_RIGHT;  // 右滑
             } else {
@@ -183,6 +226,12 @@ public class HaoRecyclerView extends RecyclerView{
                     mCurItemPosition = position;
                     // 4. 获取当前ItemView移动的百分值(等效于 (mSumScrollX % move1PageNeedX) / move1PageNeedX)
                     float offset = (float) mSumScrollX / (float) move1PageNeedX;
+
+                    // 避免offset值取整时进一，从而影响了percent值
+                    if (offset >= ((LinearLayoutManager) ((HaoRecyclerView.this).getLayoutManager())).findFirstVisibleItemPosition() + 1 && slideDirct == SLIDE_RIGHT) {
+                        return;
+                    }
+
                     float percent = offset - ((int) offset);
                     // 5. 开始动画
                     mAnimation.startAnimation(HaoRecyclerView.this, position, percent);
@@ -191,11 +240,13 @@ public class HaoRecyclerView extends RecyclerView{
 
         }
 
-        /**==============================
+        /**
+         * ==============================
          * 垂直滑动时：
          * 1. 计算出当前ItemView的位置和滑动的百分比
          * 2. 进行动画处理{@link HaoAnimatible#startAnimation(RecyclerView, int, float)}
-         *==============================*/
+         * ==============================
+         */
         private void onVerticalScroll(int dy) {
             //1. X轴方向上滑动的距离累加
             mSumScrollY += dy;
@@ -222,12 +273,15 @@ public class HaoRecyclerView extends RecyclerView{
         }
     }
 
-    /**====================================================================
+    /**
+     * ====================================================================
      * 4-获取到当前ItemView在RecyclerView中的位置
-     *  如：第10个ItemView的下标应该是9
+     * 如：第10个ItemView的下标应该是9
+     *
      * @param mSumScrollDistance  RecyclerView启动至现在所滑动的所有距离
      * @param moveOnePageDistance 移动一页需要的距离(左边Item的最右侧和当前Item最右侧之间的举例)
-     *=========================================================================*/
+     *                            =========================================================================
+     */
     private int getPosition(int mSumScrollDistance, int moveOnePageDistance) {
         float offset = (float) mSumScrollDistance / (float) moveOnePageDistance;
         int position = Math.round(offset);        // 四舍五入获取位置
@@ -246,76 +300,41 @@ public class HaoRecyclerView extends RecyclerView{
         }
         //1. 获得焦点
         this.mHasWindowFocus = hasWindowFocus;
-        /**==============================
-         * 2. 第一次运行需要滑动至第0项，避免第0项的margin不对
-         *   并且修正在滑动总量上的偏差。
-         *=============================*/
-        if(isFirst){
-            // 1. 第一次运行需要滑动至第0项，避免第0项的margin不对
-            smoothScrollToPosition(0);
-            // 2. 修正在滑动总量上的偏差。
-            mSumScrollX = 0;
-            mSumScrollY = 0;
-            resetSumScrollXY();
-            isFirst = false;
-        }else{
-            /**==========================================
-             * 3. 获得焦点时跳转到失去焦点时所在的ItemView
-             *    1-需要得到正确的滑动总距离
-             *==================================*/
-            switch (mSnapHelper){
-                case LinearSnapHelper:{
-                    break;
-                }
-                case PagerSnapHelper:{
-//                    if(mHasWindowFocus) {
-//                        // 1. 第一次运行需要滑动至第0项，避免第0项的margin不对
-//                        smoothScrollToPosition(0);
-//                    }else {
-//                        scrollToPosition(0);
-//                    }
-//                    // 2. 修正在滑动总量上的偏差。
-//                    mSumScrollX = 0;
-//                    mSumScrollY = 0;
-//                    resetSumScrollXY();
-                    return;
-                }
-            }
-            if(mHasWindowFocus){
-                mSumScrollX = 0;
-                mSumScrollY = 0;
-                //2. 滑动到position的Item(没有包含滑动距离)
-                scrollToPosition(mCurItemPosition);
-                //3. 非第一个Item的时候要修正偏移位置
-                if(mCurItemPosition != 0){
-                    setSumScrollByPosition(mCurItemPosition);
-                }
-                //4. 正确让当前Item位于中心
-                smoothScrollToPosition(mCurItemPosition);
-            }else{
-                //4. 失去焦点时，滑动到第一个Item(使得获得焦点后滑动到目标Position的距离正确计算)
-                smoothScrollToPosition(0);
-            }
+
+        /**==========================================
+         * 2. 获得焦点时跳转到失去焦点时所在的ItemView
+         *    1-需要得到正确的滑动总距离
+         *==================================*/
+        if (mHasWindowFocus) {
+            //1. 获得焦点后
+            ((LinearLayoutManager) getLayoutManager()).scrollToPositionWithOffset(mCurItemPosition,
+                    OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin));
+            setSumScrollByPosition(mCurItemPosition);
+            // 2. 动画：将当前ItemView放置到最大，两侧的缩小到合适大小
+            mAnimation.startAnimation(HaoRecyclerView.this, mCurItemPosition, 0);
         }
     }
-    /**===============================================================================
+
+    /**
+     * ===============================================================================
      * 第一次初始化RecyclerView后需要修正在滑动总量上的偏差。
-     *   滑动默认的最初始值没有包括第一个Item左边(smoothScrollToPosition(0)会导致负数初值)
-     *=============================================================================*/
+     * 滑动默认的最初始值没有包括第一个Item左边(smoothScrollToPosition(0)会导致负数初值)
+     * =============================================================================
+     */
     public void resetSumScrollXY() {
         mSumScrollX += OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin * 2);
         mSumScrollY += OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin * 2);
     }
-    /**===============================================================================
+
+    /**
+     * ===============================================================================
      * 从后台转到前台获得焦点后，非第一个ItemView根据Position获得滑动总距离。
-     *=============================================================================*/
-    private void setSumScrollByPosition(int position){
+     * =============================================================================
+     */
+    private void setSumScrollByPosition(int position) {
         //第position + 1个Item需要有(position X 一页滑动距离)的补充
-        mSumScrollX = position * GalleryItemDecoration.mMove1PageNeedX
-                //1. 最右侧需要修正一个页边距+显示的一个Item的距离
-                - OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin);
-        mSumScrollY = position * GalleryItemDecoration.mMove1PageNeedY
-                - OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin);
+        mSumScrollX = position * GalleryItemDecoration.mMove1PageNeedX;
+        mSumScrollY = position * GalleryItemDecoration.mMove1PageNeedY;
     }
 
     /**
@@ -335,12 +354,12 @@ public class HaoRecyclerView extends RecyclerView{
     /**
      * 设置动画
      */
-    public HaoRecyclerView setAnimation(HaoAnimatible animation){
+    public HaoRecyclerView setAnimation(HaoAnimatible animation) {
         mAnimation = animation;
         return this;
     }
 
-    public int getPosition(){
+    public int getPosition() {
         return mCurItemPosition;
     }
 
