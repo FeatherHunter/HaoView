@@ -17,26 +17,8 @@ import java.lang.annotation.RetentionPolicy;
  * Created by mr on 3/24/2018.
  */
 
-public class GalleryItemDecoration extends RecyclerView.ItemDecoration {
+public class GalleryItemDecoration extends HaoItemDecoration {
     private final String TAG = "GalleryItemDecoration";
-    /**===============================================
-     * 1-每个页面的左右或者上下的页边距
-     *=============================================*/
-    public static int mPageMargin = 10;          // 每一个页面默认页边距(左右或者上下)
-    public static int mOtherPageVisibleWidth = 50; // 左右或者上下两个Page的能见宽度
-
-    public void setPageMargin(int pageMargin){
-        mPageMargin = pageMargin;
-    }
-    public void setOtherPageVisibleWidth(int pageVisibleWidth){
-        mOtherPageVisibleWidth = pageVisibleWidth;
-    }
-
-    /**=====================================================
-     * 2-把当前页面的Item移动到左侧Item的位置所需要的距离(Item宽度 + 2个mPageMargin)
-     *=====================================================*/
-    public static int mMove1PageNeedY = 0;
-    public static int mMove1PageNeedX = 0;
 
     /**====================================================
      * 3-Item分割线的方向(水平 or 垂直)
@@ -139,6 +121,20 @@ public class GalleryItemDecoration extends RecyclerView.ItemDecoration {
         if (mWidthChange || mMarginChange || mHeightChange) {
             itemView.setLayoutParams(lp);
         }
+    }
+
+    /**
+     * ===============================================================================
+     * 1. 在Position位置时，滑动的总距离(处于第一个Item时距离为0)
+     * =============================================================================
+     */
+    public int getSumScrollXByPosition(int position) {
+        //第position + 1个Item需要有(position X 一页滑动距离)的补充
+        return position * mMove1PageNeedX;
+    }
+    public int getSumScrollYByPosition(int position) {
+        //第position + 1个Item需要有(position X 一页滑动距离)的补充
+        return position * mMove1PageNeedY;
     }
 
 

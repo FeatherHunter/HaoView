@@ -1,8 +1,10 @@
 package com.hao.haoview;
 
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Parcelable;
 import android.support.annotation.IntDef;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -12,18 +14,27 @@ import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
 import com.hao.haoview.util.OsUtil;
 
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+
+import jp.wasabeef.glide.transformations.BlurTransformation;
 
 /**
  * Created by mr on 3/25/2018.
  */
 
 public class HaoRecyclerView extends RecyclerView {
+    private Context mContext;
+    private ArrayList<Object> mDatas = null;
     /**
      * =====================================*
      * 1-滑动距离百分比(比例越大, 滑动越快)
@@ -97,31 +108,41 @@ public class HaoRecyclerView extends RecyclerView {
     private boolean isFirst = true;
     //当前ItemView的Position
     private int mCurItemPosition = 0;
+    // 8-分隔线绘制，并获得每个Item的实际长宽
+    private HaoItemDecoration mHaoItemDecoration;
+    // 9-是否开启高斯模糊
+    private boolean isBlured = false; //默认关闭
 
-    private GalleryItemDecoration mGalleryItemDecoration;
+    public HaoRecyclerView hasBlurBackground(boolean isBlured){
+        this.isBlured = isBlured;
+        return this;
+    }
 
     public HaoRecyclerView setPageMargin(int pageMargin) {
-        mGalleryItemDecoration.setPageMargin(pageMargin);
+        mHaoItemDecoration.setPageMargin(pageMargin);
         return this;
     }
 
     public HaoRecyclerView setOtherPageVisibleWidth(int pageVisibleWidth) {
-        mGalleryItemDecoration.setOtherPageVisibleWidth(pageVisibleWidth);
+        mHaoItemDecoration.setOtherPageVisibleWidth(pageVisibleWidth);
         return this;
     }
 
     public HaoRecyclerView(Context context) {
         super(context);
+        mContext = context;
         initRecyclerView();
     }
 
     public HaoRecyclerView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+        mContext = context;
         initRecyclerView();
     }
 
     public HaoRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        mContext = context;
         initRecyclerView();
     }
 
@@ -129,7 +150,7 @@ public class HaoRecyclerView extends RecyclerView {
 //        //1. 默认采用LinearSnapHelper作为滑动居中辅助器
 //        setSnapHelper(LinearSnapHelper);
         //2. 默认使用GalleryItemDecoration作为分割线
-        addItemDecoration(mGalleryItemDecoration = new GalleryItemDecoration());
+        addItemDecoration(mHaoItemDecoration = new GalleryItemDecoration());
         //3. 设置滑动监听器
         addOnScrollListener(new GalleryScrollerListener());
         //4.
@@ -220,9 +241,13 @@ public class HaoRecyclerView extends RecyclerView {
             HaoRecyclerView.this.post(new Runnable() {
                 @Override
                 public void run() {
-                    int move1PageNeedX = GalleryItemDecoration.mMove1PageNeedX;
+                    int move1PageNeedX = mHaoItemDecoration.getMove1PageNeedX();
                     // 3. 获取当前ItemView在RecyclerView中的位置
                     int position = getPosition(mSumScrollX, move1PageNeedX);
+                    // 4.滑动到不同Item需要不同的背景
+                    if(mCurItemPosition != position){
+                        setBlurBackground(position);
+                    }
                     mCurItemPosition = position;
                     // 4. 获取当前ItemView移动的百分值(等效于 (mSumScrollX % move1PageNeedX) / move1PageNeedX)
                     float offset = (float) mSumScrollX / (float) move1PageNeedX;
@@ -259,9 +284,13 @@ public class HaoRecyclerView extends RecyclerView {
             (HaoRecyclerView.this).post(new Runnable() {
                 @Override
                 public void run() {
-                    int move1PageNeedY = GalleryItemDecoration.mMove1PageNeedY;
+                    int move1PageNeedY = mHaoItemDecoration.getMove1PageNeedY();
                     // 3. 获取当前ItemView在RecyclerView中垂直方向的位置
                     int position = getPosition(mSumScrollY, move1PageNeedY);
+                    // 4.滑动到不同Item需要不同的背景
+                    if(mCurItemPosition != position){
+                        setBlurBackground(position);
+                    }
                     mCurItemPosition = position;
                     float offset = (float) mSumScrollY / (float) move1PageNeedY;
                     // 4. 获取当前ItemView移动的百分值
@@ -308,33 +337,15 @@ public class HaoRecyclerView extends RecyclerView {
         if (mHasWindowFocus) {
             //1. 获得焦点后
             ((LinearLayoutManager) getLayoutManager()).scrollToPositionWithOffset(mCurItemPosition,
-                    OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin));
-            setSumScrollByPosition(mCurItemPosition);
-            // 2. 动画：将当前ItemView放置到最大，两侧的缩小到合适大小
+                    OsUtil.dpToPx(mHaoItemDecoration.getOtherPageVisibleWidth() + mHaoItemDecoration.getPageMargin()));
+            //2. 通过ItemDecoration计算出需要偏移的距离
+            mSumScrollX = mHaoItemDecoration.getSumScrollXByPosition(mCurItemPosition);
+            mSumScrollY = mHaoItemDecoration.getSumScrollYByPosition(mCurItemPosition);
+            //3. 动画：将当前ItemView放置到最大，两侧的缩小到合适大小
             mAnimation.startAnimation(HaoRecyclerView.this, mCurItemPosition, 0);
+            //4.
+            setBlurBackground(mCurItemPosition);
         }
-    }
-
-    /**
-     * ===============================================================================
-     * 第一次初始化RecyclerView后需要修正在滑动总量上的偏差。
-     * 滑动默认的最初始值没有包括第一个Item左边(smoothScrollToPosition(0)会导致负数初值)
-     * =============================================================================
-     */
-    public void resetSumScrollXY() {
-        mSumScrollX += OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin * 2);
-        mSumScrollY += OsUtil.dpToPx(GalleryItemDecoration.mOtherPageVisibleWidth + GalleryItemDecoration.mPageMargin * 2);
-    }
-
-    /**
-     * ===============================================================================
-     * 从后台转到前台获得焦点后，非第一个ItemView根据Position获得滑动总距离。
-     * =============================================================================
-     */
-    private void setSumScrollByPosition(int position) {
-        //第position + 1个Item需要有(position X 一页滑动距离)的补充
-        mSumScrollX = position * GalleryItemDecoration.mMove1PageNeedX;
-        mSumScrollY = position * GalleryItemDecoration.mMove1PageNeedY;
     }
 
     /**
@@ -363,4 +374,34 @@ public class HaoRecyclerView extends RecyclerView {
         return mCurItemPosition;
     }
 
+    // RecyclerView背景的高斯模糊
+    private void setBlurBackground(int position){
+        if(isBlured){
+            if(mDatas == null){
+                mDatas = ((RecyclerViewAdpater)getAdapter()).getDatas();
+            }
+            if(position >= mDatas.size() || position < 0){
+                return;
+            }
+
+            //1. 给背景添加图片
+            SimpleTarget<Drawable> simpleTarget = new SimpleTarget<Drawable>() {
+                @Override
+                public void onResourceReady(@NonNull Drawable resource, @Nullable Transition<? super Drawable> transition) {
+                    HaoRecyclerView.this.setBackground(resource);
+                }
+            };
+
+            if(mDatas.get(position) instanceof String){ //为URL
+
+            }else if(mDatas.get(position) instanceof Drawable){
+
+            }else if(mDatas.get(position) instanceof Integer){
+                //2. 虚化效果
+                Glide.with(mContext).load((Integer) mDatas.get(position))
+                        .apply(RequestOptions.bitmapTransform(new BlurTransformation(25)))
+                        .into(simpleTarget);
+            }
+        }
+    }
 }

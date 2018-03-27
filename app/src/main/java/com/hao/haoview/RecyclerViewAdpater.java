@@ -9,6 +9,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+
 import java.util.ArrayList;
 
 /**
@@ -17,10 +20,16 @@ import java.util.ArrayList;
 
 public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
 
-    LayoutInflater mLayoutInflater;
-    ArrayList<T> mDatas;
+    private Context mContext;
+    private LayoutInflater mLayoutInflater;
+    private ArrayList<T> mDatas;
+
+    public ArrayList<T> getDatas() {
+        return mDatas;
+    }
 
     public RecyclerViewAdpater(Context context, ArrayList<T> dataArrayList) {
+        mContext = context;
         mLayoutInflater = LayoutInflater.from(context);
         mDatas = dataArrayList;
     }
@@ -51,10 +60,25 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         final ViewHolder viewHolder = (ViewHolder) holder;
+        //1. 设置占位图
+        RequestOptions options = new RequestOptions()
+                .placeholder(R.drawable.loading)
+                .centerCrop()
+                .override(900,1600);
+
         if(mDatas.get(position) instanceof String){ //为URL
 
         }else if(mDatas.get(position) instanceof Drawable){
-            viewHolder.mImageView.setImageDrawable((Drawable) mDatas.get(position));
+            //2. 加载占位图并显示需要加载的图片
+            Glide.with(mContext)
+                    .load((Drawable) mDatas.get(position))
+                    .apply(options)
+                    .into(viewHolder.mImageView);
+        }else if(mDatas.get(position) instanceof Integer){
+            Glide.with(mContext)
+                    .load((Integer)mDatas.get(position))
+                    .apply(options)
+                    .into(viewHolder.mImageView);
         }
         viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
