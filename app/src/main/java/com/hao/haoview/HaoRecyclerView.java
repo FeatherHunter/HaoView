@@ -404,6 +404,8 @@ public class HaoRecyclerView extends RecyclerView {
             //2. 是其他布局就强行更改为默认的线性布局，且为水平方向。防止出现问题
             layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
         }
+        ((LinearLayoutManager)layoutManager).setItemPrefetchEnabled(true);
+        ((LinearLayoutManager)layoutManager).setInitialPrefetchItemCount(5);
         super.setLayoutManager(layoutManager);
     }
 
@@ -492,9 +494,12 @@ public class HaoRecyclerView extends RecyclerView {
                 float intervalPx = circleRadiusPx / 1;
                 float totalWidth = mDatas.size() * circleRadiusPx + (mDatas.size() - 1) * intervalPx;
                 float startCx = width / 2 - totalWidth / 2;
+
+                int position = (mCurItemPosition + mDatas.size()) % mDatas.size();
+
                 for (int i = 0; i < mDatas.size(); i++) {
                     //需要特殊处理
-                    if(i == mCurItemPosition){
+                    if(i == position){
                         paint.setStyle(Paint.Style.FILL);
                         paint.setColor(Color.parseColor("#4fc3f7"));
                         paint.setAntiAlias(true);

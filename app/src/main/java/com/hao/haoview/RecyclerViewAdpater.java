@@ -68,6 +68,7 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
         mContext = context;
         mLayoutInflater = LayoutInflater.from(context);
         mDatas = dataArrayList;
+        itemCount = mDatas.size();
     }
 
     private OnItemClickListener mOnItemClickListener;
@@ -141,10 +142,11 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
         });
     }
 
+    private static int itemCount = 0;
     @Override
     public int getItemCount() {
         //1. 如果是无限循环就返回Int上限，如果不是无限循环就正常返回数组的大小
-        return (isLoop == false)?(mDatas.size()):(Integer.MAX_VALUE);
+        return (isLoop == false)?(itemCount):(++itemCount);
     }
 
 //    //提供了增删的接口

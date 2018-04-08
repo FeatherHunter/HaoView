@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
-    ArrayList<Integer> mDataList = new ArrayList<>();
+    ArrayList<String> mDataList = new ArrayList<>();
     HaoRecyclerView mRecyclerView;
     RecyclerViewAdpater mAdapter;
     LinearLayoutManager mLinearLayoutManager;
@@ -52,31 +52,32 @@ public class MainActivity extends Activity {
         initData();
         mRecyclerView = findViewById(R.id.recycler_view);
         mRecyclerView.setLayoutManager(mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        mLinearLayoutManager.setItemPrefetchEnabled(true);
-        mLinearLayoutManager.setInitialPrefetchItemCount(5);
         mRecyclerView.setPageMargin(0)
                 .setOtherPageVisibleWidth(0)
                 .setSnapHelper(HaoRecyclerView.PagerSnapHelper)
                 .hasBlurBackground(false)
-                .setAdapter(mAdapter = new RecyclerViewAdpater<Integer>(this, mDataList));
-        mAdapter.setLoop(false);
+                .setAdapter(mAdapter = new RecyclerViewAdpater<String>(this, mDataList));
+        mAdapter.setLoop(true);
         mRecyclerView.startLoop(2, TimeUnit.SECONDS);
         mRecyclerView.setDotPosition(HaoRecyclerView.DOT_BOTTOM_CENTER);
         mRecyclerView.setDotRadiusDp(3.5f);
     }
 
     private void initData() {
-        mDataList.add(R.drawable.assassins_creed);
-        mDataList.add(R.drawable.watch_dog1);
-        mDataList.add(R.drawable.lol2);
-        mDataList.add(R.drawable.diablo1);
-        mDataList.add(R.drawable.lol1);
-        mDataList.add(R.drawable.pubg);
-        mDataList.add(R.drawable.wow1);
-        mDataList.add(R.drawable.wow3);
-        mDataList.add(R.drawable.batman);
-        mDataList.add(R.drawable.assassins_creed2);
-        mDataList.add(R.drawable.call_of_duty);
-        mDataList.add(R.drawable.wow2);
+        mDataList.add("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1523214354518&di=61f1a39c76ab73b02e732de4f409ac83&imgtype=0&src=http%3A%2F%2Fpic.58pic.com%2F58pic%2F13%2F29%2F60%2F67H58PICDeh_1024.jpg");
+        mDataList.add("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1523214354518&di=61f1a39c76ab73b02e732de4f409ac83&imgtype=0&src=http%3A%2F%2Fpic.58pic.com%2F58pic%2F13%2F29%2F60%2F67H58PICDeh_1024.jpg");
+        mDataList.add("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1523214354518&di=61f1a39c76ab73b02e732de4f409ac83&imgtype=0&src=http%3A%2F%2Fpic.58pic.com%2F58pic%2F13%2F29%2F60%2F67H58PICDeh_1024.jpg");
+        //        mDataList.add(R.drawable.assassins_creed);
+//        mDataList.add(R.drawable.watch_dog1);
+//        mDataList.add(R.drawable.lol2);
+//        mDataList.add(R.drawable.diablo1);
+//        mDataList.add(R.drawable.lol1);
+//        mDataList.add(R.drawable.pubg);
+//        mDataList.add(R.drawable.wow1);
+//        mDataList.add(R.drawable.wow3);
+//        mDataList.add(R.drawable.batman);
+//        mDataList.add(R.drawable.assassins_creed2);
+//        mDataList.add(R.drawable.call_of_duty);
+//        mDataList.add(R.drawable.wow2);
     }
 }
