@@ -1,6 +1,9 @@
 package com.hao.haoview;
 
 import android.content.Context;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -11,6 +14,7 @@ import android.support.v7.widget.LinearSnapHelper;
 import android.support.v7.widget.PagerSnapHelper;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -23,6 +27,14 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import jp.wasabeef.glide.transformations.BlurTransformation;
 
@@ -31,6 +43,7 @@ import jp.wasabeef.glide.transformations.BlurTransformation;
  */
 
 public class HaoRecyclerView extends RecyclerView {
+
     private Context mContext;
     private ArrayList<Object> mDatas = null;
     /**
@@ -98,12 +111,8 @@ public class HaoRecyclerView extends RecyclerView {
      * ===============================
      */
     public boolean mHasWindowFocus = false;
-    /**
-     * ===============================*
-     * 7-RecyclerView第一次运行需要修正第一页的Margin问题
-     * ===============================
-     */
-    private boolean isFirst = true;
+
+
     //当前ItemView的Position
     private int mCurItemPosition = 0;
     // 8-分隔线绘制，并获得每个Item的实际长宽
@@ -111,7 +120,41 @@ public class HaoRecyclerView extends RecyclerView {
     // 9-是否开启高斯模糊
     private boolean isBlured = false; //默认关闭
 
-    public HaoRecyclerView hasBlurBackground(boolean isBlured){
+    /**===================================*
+     * 7-周期线程池(Banner效果，定时切换Item)
+     *==================================*/
+    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+    private static final int CORE_POOL_SIZE = CPU_COUNT + 1;
+
+    private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+        private final AtomicInteger mCount = new AtomicInteger(1);
+
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "HaoRecyclerView #" + mCount.getAndIncrement());
+        }
+    };
+    public static final ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(CORE_POOL_SIZE, sThreadFactory);
+    /**===================================*
+     * 8-是否有循环点，以及循环点的位置
+     *==================================*/
+    @IntDef({DOT_BOTTOM_LEFT, DOT_BOTTOM_RIGHT, DOT_BOTTOM_CENTER})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface DotDirection {
+    }
+
+    public static final int DOT_NULL = 0;
+    public static final int DOT_BOTTOM_LEFT = 1;    // 底部左边
+    public static final int DOT_BOTTOM_RIGHT = 2;   // 底部右边
+    public static final int DOT_BOTTOM_CENTER = 3;  // 底部中间
+
+    // 默认为没有循环点
+    private int dotPosition = DOT_NULL;
+    public void setDotPosition(@DotDirection int dotPosition){
+        this.dotPosition = dotPosition;
+    }
+
+    //设置是否使用背景模糊循环
+    public HaoRecyclerView hasBlurBackground(boolean isBlured) {
         this.isBlured = isBlured;
         return this;
     }
@@ -151,8 +194,6 @@ public class HaoRecyclerView extends RecyclerView {
         addItemDecoration(mHaoItemDecoration = new GalleryItemDecoration());
         //3. 设置滑动监听器
         addOnScrollListener(new GalleryScrollerListener());
-        //4.
-        setAnimation(new ScaleAnimation());
     }
 
     /**
@@ -243,7 +284,7 @@ public class HaoRecyclerView extends RecyclerView {
                     // 3. 获取当前ItemView在RecyclerView中的位置
                     int position = getPosition(mSumScrollX, move1PageNeedX);
                     // 4.滑动到不同Item需要不同的背景
-                    if(mCurItemPosition != position){
+                    if (mCurItemPosition != position) {
                         setBlurBackground(position);
                     }
                     mCurItemPosition = position;
@@ -257,7 +298,9 @@ public class HaoRecyclerView extends RecyclerView {
 
                     float percent = offset - ((int) offset);
                     // 5. 开始动画
-                    mAnimation.startAnimation(HaoRecyclerView.this, position, percent);
+                    if (mAnimation != null) {
+                        mAnimation.startAnimation(HaoRecyclerView.this, position, percent);
+                    }
                 }
             });
 
@@ -286,7 +329,7 @@ public class HaoRecyclerView extends RecyclerView {
                     // 3. 获取当前ItemView在RecyclerView中垂直方向的位置
                     int position = getPosition(mSumScrollY, move1PageNeedY);
                     // 4.滑动到不同Item需要不同的背景
-                    if(mCurItemPosition != position){
+                    if (mCurItemPosition != position) {
                         setBlurBackground(position);
                     }
                     mCurItemPosition = position;
@@ -294,7 +337,9 @@ public class HaoRecyclerView extends RecyclerView {
                     // 4. 获取当前ItemView移动的百分值
                     float percent = offset - ((int) offset);
                     // 5. 开始动画
-                    mAnimation.startAnimation(HaoRecyclerView.this, position, percent);
+                    if (mAnimation != null) {
+                        mAnimation.startAnimation(HaoRecyclerView.this, position, percent);
+                    }
                 }
             });
         }
@@ -340,7 +385,9 @@ public class HaoRecyclerView extends RecyclerView {
             mSumScrollX = mHaoItemDecoration.getSumScrollXByPosition(mCurItemPosition);
             mSumScrollY = mHaoItemDecoration.getSumScrollYByPosition(mCurItemPosition);
             //3. 动画：将当前ItemView放置到最大，两侧的缩小到合适大小
-            mAnimation.startAnimation(HaoRecyclerView.this, mCurItemPosition, 0);
+            if (mAnimation != null) {
+                mAnimation.startAnimation(HaoRecyclerView.this, mCurItemPosition, 0);
+            }
             //4.
             setBlurBackground(mCurItemPosition);
         }
@@ -373,12 +420,12 @@ public class HaoRecyclerView extends RecyclerView {
     }
 
     // RecyclerView背景的高斯模糊
-    private void setBlurBackground(int position){
-        if(isBlured){
-            if(mDatas == null){
-                mDatas = ((RecyclerViewAdpater)getAdapter()).getDatas();
+    private void setBlurBackground(int position) {
+        if (isBlured) {
+            if (mDatas == null) {
+                mDatas = ((RecyclerViewAdpater) getAdapter()).getDatas();
             }
-            if(position >= mDatas.size() || position < 0){
+            if (position >= mDatas.size() || position < 0) {
                 return;
             }
 
@@ -390,16 +437,84 @@ public class HaoRecyclerView extends RecyclerView {
                 }
             };
 
-            if(mDatas.get(position) instanceof String){ //为URL
+            if (mDatas.get(position) instanceof String) { //为URL
 
-            }else if(mDatas.get(position) instanceof Drawable){
+            } else if (mDatas.get(position) instanceof Drawable) {
 
-            }else if(mDatas.get(position) instanceof Integer){
+            } else if (mDatas.get(position) instanceof Integer) {
                 //2. 虚化效果
                 Glide.with(mContext).load((Integer) mDatas.get(position))
                         .apply(RequestOptions.bitmapTransform(new BlurTransformation(25)))
                         .into(simpleTarget);
             }
         }
+    }
+
+    /**===================================*
+     *  1. 开启循环(给定间隔)
+     *  2. 停止循环
+     *==================================*/
+    public void startLoop(long delay, TimeUnit unit){
+        mScheduledThreadPoolExecutor.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                mCurItemPosition++;
+                HaoRecyclerView.this.smoothScrollToPosition(mCurItemPosition);
+            }
+        }, delay, delay, unit);
+    }
+    public  void stopLoop(){
+        mScheduledThreadPoolExecutor.shutdown();
+    }
+
+    /**=============================
+     * 绘制循环点(在子View和前景之间)
+     *=============================*/
+    @Override
+    protected void dispatchDraw(Canvas canvas) {
+        super.dispatchDraw(canvas);
+
+        // 获得转换后的px值
+        float circleRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dotRadiusDp, mContext.getResources().getDisplayMetrics());
+
+        switch (dotPosition){
+            case DOT_NULL:break;
+            case DOT_BOTTOM_CENTER:
+
+                if (mDatas == null) {
+                    mDatas = ((RecyclerViewAdpater) getAdapter()).getDatas();
+                }
+
+                int width = HaoRecyclerView.this.getWidth();
+                int height = HaoRecyclerView.this.getHeight();
+                Paint paint = new Paint();
+                float cy = height - 2 * circleRadiusPx;
+                float intervalPx = circleRadiusPx / 1;
+                float totalWidth = mDatas.size() * circleRadiusPx + (mDatas.size() - 1) * intervalPx;
+                float startCx = width / 2 - totalWidth / 2;
+                for (int i = 0; i < mDatas.size(); i++) {
+                    //需要特殊处理
+                    if(i == mCurItemPosition){
+                        paint.setStyle(Paint.Style.FILL);
+                        paint.setColor(Color.parseColor("#4fc3f7"));
+                        paint.setAntiAlias(true);
+                        canvas.drawCircle(startCx, cy, circleRadiusPx, paint);
+                    }else{
+                        paint.setStyle(Paint.Style.FILL);
+                        paint.setColor(Color.WHITE);
+                        paint.setAntiAlias(true);
+                        canvas.drawCircle(startCx, cy, circleRadiusPx, paint);
+                    }
+                    startCx += circleRadiusPx * 2 + intervalPx;
+                }
+                break;
+            case DOT_BOTTOM_LEFT:break;
+            case DOT_BOTTOM_RIGHT:break;
+        }
+    }
+
+    private float dotRadiusDp = 0;
+    public void setDotRadiusDp(float dotRadiusDp){
+        this.dotRadiusDp = dotRadiusDp;
     }
 }
