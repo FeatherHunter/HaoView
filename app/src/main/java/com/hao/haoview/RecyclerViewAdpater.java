@@ -1,6 +1,7 @@
 package com.hao.haoview;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -97,15 +98,19 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
         final ViewHolder viewHolder = (ViewHolder) holder;
+
+        viewHolder.itemView.setBackgroundColor(Color.RED);
+
 //        RequestOptions options = new RequestOptions()
 //                .placeholder(R.drawable.loading)
 //                .centerCrop()
 //                .override(900,1600);
         //1. 设置占位图-填充
         RequestOptions options = new RequestOptions()
-                .placeholder(R.drawable.loading);
+                .placeholder(R.drawable.loading)
+                .centerCrop();
 
-        position = (position + mDatas.size()) % mDatas.size();
+//        position = (position + mDatas.size()) % mDatas.size();
 
         if(mDatas.get(position) instanceof String){ //为URL
             //1. URL数组
@@ -130,13 +135,17 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
         viewHolder.mImageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mOnItemClickListener.onItemClick(viewHolder.mImageView, clickPosition);
+                if(mOnItemClickListener != null){
+                    mOnItemClickListener.onItemClick(viewHolder.mImageView, clickPosition);
+                }
             }
         });
         viewHolder.mImageView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                mOnItemClickListener.onItemLongClick(viewHolder.mImageView, clickPosition);
+                if(mOnItemClickListener != null){
+                    mOnItemClickListener.onItemLongClick(viewHolder.mImageView, clickPosition);
+                }
                 return false;
             }
         });
@@ -146,7 +155,8 @@ public class RecyclerViewAdpater<T> extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         //1. 如果是无限循环就返回Int上限，如果不是无限循环就正常返回数组的大小
-        return (isLoop == false)?(itemCount):(++itemCount);
+//        return (isLoop == false)?(itemCount):(++itemCount);
+        return mDatas.size();
     }
 
 //    //提供了增删的接口
