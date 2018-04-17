@@ -26,21 +26,41 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * Created by mr on 4/15/2018.
  */
-
 public class CarouselRecyclerView extends RecyclerView {
+    public static final int DOT_NULL = 0;
+    public static final int DOT_BOTTOM_LEFT = 1;    // 底部左边
+    public static final int DOT_BOTTOM_RIGHT = 2;   // 底部右边
+    public static final int DOT_BOTTOM_CENTER = 3;  // 底部中间
+    private static final String TAG = CarouselRecyclerView.class.getName();
+    /**
+     * ===================================*
+     * 周期线程池(Banner效果，定时切换Item)
+     * ==================================
+     */
+    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
+    private static final int CORE_POOL_SIZE = CPU_COUNT + 1;
+    private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+        private final AtomicInteger mCount = new AtomicInteger(1);
+
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "CarouselRecyclerView #" + mCount.getAndIncrement());
+        }
+    };
+    public static final ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(CORE_POOL_SIZE, sThreadFactory);
     private CarouselLayoutManager mCarouselLayoutManager;
     private Context mContext;
     private boolean DEBUG = true;
     /**
      * 存放数据
      */
-    private ArrayList<Object> mDatas = null;
+//    private ArrayList<Object> mDatas = null;
+    private ArrayList<String> mBottomTexts = null;
     /**
      * 当前Item的位置
      */
     private int mCurItemPosition = 0;
     /**
-     *     默认为没有循环点
+     * 默认为没有循环点
      */
     private int mDotPosition = DOT_NULL;
     private float mDotRadiusDp = 0; //循环点半径
@@ -60,39 +80,20 @@ public class CarouselRecyclerView extends RecyclerView {
      */
     private long mDelay = 0;
     private TimeUnit mTimeUnit;
+    private int mSelectDotColor = Color.parseColor("#4fc3f7");
+    private int mOtherDotColor = Color.WHITE;
     /**
-     * ===================================*
-     * 1-是否有循环点，以及循环点的位置
-     * ==================================
+     * 绘制底部文字内容
      */
-    @IntDef({DOT_BOTTOM_LEFT, DOT_BOTTOM_RIGHT, DOT_BOTTOM_CENTER})
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface DotDirection {
-    }
+    private boolean mHasBottomText = false;
+    private float mBgHeightDp = 0;
+    private int mBgColor = Color.parseColor("#77bcbcbc");
+    private int mBottomTextColor = Color.parseColor("#ffffff");
+    private float mBottomTextSizeDp = 10f;
+    private float mBottomTxtMariginDp = 1f;
 
-    public static final int DOT_NULL = 0;
-    public static final int DOT_BOTTOM_LEFT = 1;    // 底部左边
-    public static final int DOT_BOTTOM_RIGHT = 2;   // 底部右边
-    public static final int DOT_BOTTOM_CENTER = 3;  // 底部中间
-    private static final String TAG = CarouselRecyclerView.class.getName();
-    /**
-     * ===================================*
-     * 1-周期线程池(Banner效果，定时切换Item)
-     * ==================================
-     */
-    private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
-    private static final int CORE_POOL_SIZE = CPU_COUNT + 1;
-    private static final ThreadFactory sThreadFactory = new ThreadFactory() {
-        private final AtomicInteger mCount = new AtomicInteger(1);
-
-        public Thread newThread(Runnable r) {
-            return new Thread(r, "CarouselRecyclerView #" + mCount.getAndIncrement());
-        }
-    };
-    public static final ScheduledThreadPoolExecutor mScheduledThreadPoolExecutor = new ScheduledThreadPoolExecutor(CORE_POOL_SIZE, sThreadFactory);
-
-    public CarouselRecyclerView(Context context) {
-        super(context);
+    public CarouselRecyclerView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
         mContext = context;
         init();
     }
@@ -103,6 +104,8 @@ public class CarouselRecyclerView extends RecyclerView {
         mCarouselLayoutManager.setInfinite(true);
         mCarouselLayoutManager.setMoveSpeed(1f);
         mCarouselLayoutManager.setMinScale(1f);
+//        mCarouselLayoutManager.setAutoMeasureEnabled(false);
+//        mCarouselLayoutManager.setMaxVisibleItemCount(1);
         this.setLayoutManager(mCarouselLayoutManager);
         //默认轮播点在中央正下方
         setDotPosition(DOT_BOTTOM_RIGHT);
@@ -120,16 +123,46 @@ public class CarouselRecyclerView extends RecyclerView {
         this.mDotRadiusDp = dotRadiusDp;
     }
 
-    public CarouselRecyclerView(Context context, @Nullable AttributeSet attrs) {
-        super(context, attrs);
-        mContext = context;
-        init();
-    }
-
     public CarouselRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         mContext = context;
         init();
+    }
+
+    public void setSelectDotColor(int selectDotColor) {
+        mSelectDotColor = selectDotColor;
+    }
+
+    public void setOtherDotColor(int otherDotColor) {
+        mOtherDotColor = otherDotColor;
+    }
+
+    public void setBottomTxtMariginDp(float bottomTxtMariginDp) {
+        mBottomTxtMariginDp = bottomTxtMariginDp;
+    }
+
+    public void setBottomTexts(ArrayList<String> bottomTexts) {
+        mBottomTexts = bottomTexts;
+    }
+
+    public void setHasBottomText(boolean hasBottomText) {
+        mHasBottomText = hasBottomText;
+    }
+
+    public void setBgHeightDp(float bgHeightDp) {
+        mBgHeightDp = bgHeightDp;
+    }
+
+    public void setBgColor(int bgColor) {
+        mBgColor = bgColor;
+    }
+
+    public void setBottomTextColor(int bottomTextColor) {
+        mBottomTextColor = bottomTextColor;
+    }
+
+    public void setBottomTextSizeDp(float bottomTextSizeDp) {
+        mBottomTextSizeDp = bottomTextSizeDp;
     }
 
     /**
@@ -144,15 +177,48 @@ public class CarouselRecyclerView extends RecyclerView {
         // 获得转换后的px值
         float circleRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDotRadiusDp, mContext.getResources().getDisplayMetrics());
         float dorIntervalPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDotIntervalDp, mContext.getResources().getDisplayMetrics());
-        // 获取数据集合
-        if (mDatas == null) {
-            mDatas = ((RecyclerViewAdpater) getAdapter()).getDatas();
+
+//        mDatas = getLayoutManager();
+
+        int itemCount = getLayoutManager().getItemCount();
+
+        // 没有数据就Return
+        if (itemCount <= 0) {
+            return;
         }
         // RV宽高
         int width = CarouselRecyclerView.this.getWidth();
         int height = CarouselRecyclerView.this.getHeight();
 
+        mCurItemPosition = ((ViewPagerLayoutManager) getLayoutManager()).getCurrentPosition();
+
+
         Paint paint = new Paint();
+
+        paint.setColor(mBgColor);
+        if (mHasBottomText && mBottomTexts != null && mBottomTexts.size() > 0) {
+            float bgHeightPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mBgHeightDp, mContext.getResources().getDisplayMetrics());
+
+            float bottomTextSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mBottomTextSizeDp, mContext.getResources().getDisplayMetrics());
+
+            float textMargin = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mBottomTxtMariginDp, mContext.getResources().getDisplayMetrics());
+
+            canvas.drawRect(0, height - bgHeightPx, width, height, paint);
+            paint.setColor(mBottomTextColor);
+            paint.setTextSize(bottomTextSize);
+            paint.setAntiAlias(true);
+
+            String text = mBottomTexts.get(mCurItemPosition % mBottomTexts.size());
+            canvas.drawText(text, 0 + textMargin, height - textMargin, paint);
+
+            if (DEBUG) {
+                Log.d(TAG, "draw text");
+            }
+        } else {
+            if (DEBUG) {
+                Log.d(TAG, "Dont draw text");
+            }
+        }
 
         switch (mDotPosition) {
             case DOT_NULL:
@@ -161,16 +227,16 @@ public class CarouselRecyclerView extends RecyclerView {
 
                 float cy = height - 2 * circleRadiusPx;
 
-                int count = mDatas.size();
+                int count = itemCount;
                 float leftDistance = (count / 2 + (count % 2) * 0.5f) * (dorIntervalPx + circleRadiusPx);
                 float oneDistance = (2 * circleRadiusPx) + dorIntervalPx;
 
                 float startCx = width / 2 - leftDistance;
 
-                mCurItemPosition = ((ViewPagerLayoutManager) getLayoutManager()).getCurrentPosition();
-                int position = (mCurItemPosition + mDatas.size()) % mDatas.size();
+                int position = (mCurItemPosition + itemCount) % itemCount;
 
-                for (int i = 0; i < mDatas.size(); i++) {
+                for (int i = 0; i < itemCount; i++) {
+                    paint.reset();
                     //需要特殊处理
                     if (i == position) {
                         paint.setStyle(Paint.Style.FILL);
@@ -192,27 +258,25 @@ public class CarouselRecyclerView extends RecyclerView {
 
                 cy = height - 2 * circleRadiusPx;
 
-                count = mDatas.size();
+                count = itemCount;
 
                 leftDistance = (count * circleRadiusPx * 2) + (count - 1) * dorIntervalPx;
                 oneDistance = (2 * circleRadiusPx) + dorIntervalPx;
 
-                startCx = width  - leftDistance;
+                startCx = width - leftDistance;
 
-                mCurItemPosition = ((ViewPagerLayoutManager) getLayoutManager()).getCurrentPosition();
+                position = (mCurItemPosition + itemCount) % itemCount;
 
-                position = (mCurItemPosition + mDatas.size()) % mDatas.size();
-
-                for (int i = 0; i < mDatas.size(); i++) {
+                for (int i = 0; i < itemCount; i++) {
                     //需要特殊处理
                     if (i == position) {
                         paint.setStyle(Paint.Style.FILL);
-                        paint.setColor(Color.parseColor("#4fc3f7"));
+                        paint.setColor(mSelectDotColor);
                         paint.setAntiAlias(true);
                         canvas.drawCircle(startCx, cy, circleRadiusPx, paint);
                     } else {
                         paint.setStyle(Paint.Style.FILL);
-                        paint.setColor(Color.WHITE);
+                        paint.setColor(mOtherDotColor);
                         paint.setAntiAlias(true);
                         canvas.drawCircle(startCx, cy, circleRadiusPx, paint);
                     }
@@ -238,12 +302,11 @@ public class CarouselRecyclerView extends RecyclerView {
         mDelay = delay;
         mTimeUnit = unit;
         //在切换横竖屏时进行修正
-//        CarouselRecyclerView.this.smoothScrollToPosition(mCurItemPosition);
-//        requestLayout();
         mScheduledFuture = mScheduledThreadPoolExecutor.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 mCurItemPosition++;
+                mCurItemPosition %= mCarouselLayoutManager.getItemCount();
                 CarouselRecyclerView.this.smoothScrollToPosition(mCurItemPosition);
             }
         }, delay, delay, unit);
@@ -275,12 +338,11 @@ public class CarouselRecyclerView extends RecyclerView {
             //开启状态并且已经被暂停，
             if (mStartLooping == true && mPauseLooping == true) {
                 mPauseLooping = false; //不处于暂停状态
-//                CarouselRecyclerView.this.smoothScrollToPosition(mCurItemPosition);
-//                requestLayout();
                 mScheduledFuture = mScheduledThreadPoolExecutor.scheduleWithFixedDelay(new Runnable() {
                     @Override
                     public void run() {
                         mCurItemPosition++;
+                        mCurItemPosition %= mCarouselLayoutManager.getItemCount();
                         CarouselRecyclerView.this.smoothScrollToPosition(mCurItemPosition);
                     }
                 }, mDelay, mDelay, mTimeUnit);
@@ -307,5 +369,15 @@ public class CarouselRecyclerView extends RecyclerView {
 
     public void setDotIntervalDp(float dotIntervalDp) {
         mDotIntervalDp = dotIntervalDp;
+    }
+
+    /**
+     * ===================================*
+     * 1-是否有循环点，以及循环点的位置
+     * ==================================
+     */
+    @IntDef({DOT_BOTTOM_LEFT, DOT_BOTTOM_RIGHT, DOT_BOTTOM_CENTER})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface DotDirection {
     }
 }
