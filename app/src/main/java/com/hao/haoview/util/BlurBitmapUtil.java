@@ -1,4 +1,4 @@
-package com.hao.haoview;
+package com.hao.haoview.util;
 
 import android.content.Context;
 import android.graphics.Bitmap;

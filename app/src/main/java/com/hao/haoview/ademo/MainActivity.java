@@ -1,19 +1,22 @@
-package com.hao.haoview;
+package com.hao.haoview.ademo;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
+import android.view.View;
+import android.widget.Button;
 
-import com.hao.haoview.LayoutManager.HaoPagerSnapHelper;
+import com.hao.haoview.R;
+import com.hao.haoview.RecyclerView.LayoutManager.HaoPagerSnapHelper;
+import com.hao.haoview.RecyclerView.widget.CarouselRecyclerView;
+import com.hao.haoview.deprecated.HaoRecyclerView;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
     ArrayList<String> mDataList = new ArrayList<>();
-    HaoRecyclerView mRecyclerView;
-    RecyclerViewAdpater mAdapter;
-    LinearLayoutManager mLinearLayoutManager;
 
     CarouselRecyclerView mCarouselRecyclerView;
 
@@ -21,6 +24,16 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Button textButton = findViewById(R.id.text_path_btn);
+        Button rvButton = findViewById(R.id.carousel_rv_btn);
+
+        textButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, TextPathActivity.class));
+            }
+        });
 
 //        HaoToggleButton button = findViewById(R.id.button);
 //        button.setOnToggleSelectListener(new HaoToggleButton.OnToggleSelectListener() {
@@ -49,7 +62,8 @@ public class MainActivity extends Activity {
 //            }
 //        });
 
-        initData();
+//        initData();
+
 //        mRecyclerView = findViewById(R.id.recycler_view);
 //        mRecyclerView.setLayoutManager(mLinearLayoutManager = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 //        mRecyclerView.setPageMargin(0)
@@ -73,11 +87,11 @@ public class MainActivity extends Activity {
 //        recyclerView.setAdapter(new RecyclerViewAdpater<Integer>(this, mDataList));
 //        new HaoPagerSnapHelper().attachToRecyclerView(recyclerView);
 
-        mCarouselRecyclerView = findViewById(R.id.carousel_recycler_view);
-        mCarouselRecyclerView.setAdapter(new RecyclerViewAdpater(this, mDataList));
-        (new HaoPagerSnapHelper()).attachToRecyclerView(mCarouselRecyclerView);
-        mCarouselRecyclerView.startLoop(1, TimeUnit.SECONDS);
-        mCarouselRecyclerView.requestLayout();
+//        mCarouselRecyclerView = findViewById(R.id.carousel_recycler_view);
+//        mCarouselRecyclerView.setAdapter(new RecyclerViewAdpater(this, mDataList));
+//        (new HaoPagerSnapHelper()).attachToRecyclerView(mCarouselRecyclerView);
+//        mCarouselRecyclerView.startLoop(1, TimeUnit.SECONDS);
+//        mCarouselRecyclerView.requestLayout();
     }
 
     private void initData() {
@@ -90,23 +104,5 @@ public class MainActivity extends Activity {
         mDataList.add("https://images.alphacoders.com/309/thumb-1920-30923.jpg");
         mDataList.add("https://images3.alphacoders.com/312/thumb-1920-31277.jpg");
         mDataList.add("https://images.alphacoders.com/428/thumb-1920-42873.jpg");
-//        mDataList.add(R.drawable.assassins_creed);
-//        mDataList.add(R.drawable.watch_dog1);
-//        mDataList.add(R.drawable.lol2);
-//        mDataList.add(R.drawable.diablo1);
-//        mDataList.add(R.drawable.lol1);
-//        mDataList.add(R.drawable.pubg);
-//        mDataList.add(R.drawable.wow1);
-//        mDataList.add(R.drawable.wow3);
-//        mDataList.add(R.drawable.batman);
-//        mDataList.add(R.drawable.assassins_creed2);
-//        mDataList.add(R.drawable.call_of_duty);
-//        mDataList.add(R.drawable.wow2);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mCarouselRecyclerView.stopLoop();
     }
 }

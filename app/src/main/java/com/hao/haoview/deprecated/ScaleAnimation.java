@@ -1,4 +1,4 @@
-package com.hao.haoview;
+package com.hao.haoview.deprecated;
 
 import android.support.annotation.IntDef;
 import android.support.v7.widget.RecyclerView;

@@ -1,4 +1,4 @@
-package com.hao.haoview.LayoutManager;
+package com.hao.haoview.RecyclerView.LayoutManager;
 
 import android.graphics.Rect;
 import android.support.v7.widget.*;

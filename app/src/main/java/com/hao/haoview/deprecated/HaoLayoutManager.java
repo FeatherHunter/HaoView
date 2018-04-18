@@ -1,15 +1,13 @@
-package com.hao.haoview.LayoutManager.Sorry;
+package com.hao.haoview.deprecated;
 
 import android.content.Context;
-import android.graphics.Rect;
-import android.support.v4.os.TraceCompat;
 import android.support.v7.widget.*;
 import android.support.v7.widget.OrientationHelper;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-import com.hao.haoview.LayoutManager.ViewPagerLayoutManager;
+import com.hao.haoview.RecyclerView.LayoutManager.ViewPagerLayoutManager;
 
 import java.util.List;
 

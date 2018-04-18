@@ -1,4 +1,4 @@
-package com.hao.haoview.LayoutManager;
+package com.hao.haoview.RecyclerView.LayoutManager;
 
 import android.content.Context;
 import android.view.View;
