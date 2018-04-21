@@ -3,12 +3,15 @@ package com.hao.haoview.TextView;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PathMeasure;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.AppCompatTextView;
 import android.util.AttributeSet;
+
+import java.util.Random;
 
 /**
  * Created by mr on 4/19/2018.
@@ -49,6 +52,16 @@ public class TextPathView extends AppCompatTextView {
      * 动画时长
      */
     private int mDuration = 2000;
+
+    /**
+     *
+     * @return
+     */
+    Decorate mDecorate;
+
+    public void setDecorate(Decorate decorate) {
+        mDecorate = decorate;
+    }
 
     public int getDuration() {
         return mDuration;
@@ -123,6 +136,7 @@ public class TextPathView extends AppCompatTextView {
         //2. 配置好pathmeasure
         mPathMeasure.setPath(mSrcPath, false);
         //3.
+        mDstPath.reset();
         while (stopDistance > mPathMeasure.getLength()) {
             stopDistance -= mPathMeasure.getLength();
             mPathMeasure.getSegment(0, mPathMeasure.getLength(), mDstPath, true);
@@ -131,12 +145,101 @@ public class TextPathView extends AppCompatTextView {
             }
         }
         mPathMeasure.getSegment(0, stopDistance, mDstPath, true);
+        float[] pos = new float[2];
+        float[] tan = new float[2];
+        //返回当前片段的(x,y点)和正切
+        mPathMeasure.getPosTan(stopDistance, pos, tan);
+
+        if(mDecorate != null && mProgress > 0 && mProgress < 1f){
+            mDecorate.drawDecoratePath(canvas, pos, tan, mPaint);
+        }
+
         //4. 绘制
+        mPaint.reset();
         mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setStrokeWidth(mStrokeWidth);
         mPaint.setColor(getCurrentTextColor());
         mPaint.setAntiAlias(true);
         canvas.drawPath(mDstPath, mPaint);
+    }
+
+    public interface Decorate{
+        public void drawDecoratePath(Canvas canvas, float[] pos, float tan[], Paint paint);
+    }
+
+    public static class ArrowDecorate implements Decorate {
+        float angle = (float) (Math.PI / 4);
+        float radius = 20;
+        @Override
+        public void drawDecoratePath(Canvas canvas, float[] pos, float[] tan, Paint paint) {
+            float x = pos[0];
+            float y = pos[1];
+
+            float degree = (float)(Math.atan2(tan[1], tan[0]));
+
+            float x1 = (float) (radius * Math.cos(degree + angle));
+            float y1 = (float) (radius * Math.sin(degree + angle));
+            float x2 = (float) (radius * Math.cos(degree - angle));
+            float y2 = (float) (radius * Math.sin(degree - angle));
+
+            Path decoratePath = new Path();
+            decoratePath.moveTo(x, y);
+            decoratePath.lineTo(x - x1, y - y1);
+            decoratePath.moveTo(x, y);
+            decoratePath.lineTo(x - x2, y - y2);
+            canvas.drawPath(decoratePath, paint);
+        }
+    }
+
+    public static class FireDecorate implements Decorate {
+        float angle = (float) (Math.PI / 4);
+        float radius = 10;
+        int count = 2;
+        Random mRandom = new Random();
+        @Override
+        public void drawDecoratePath(Canvas canvas, float[] pos, float[] tan, Paint paint) {
+            float x = pos[0];
+            float y = pos[1];
+
+            float degree = (float)(Math.atan2(tan[1], tan[0]));
+
+            for (int i = 0; i < count; i++) {
+                radius = (float) (mRandom.nextFloat() * 40);
+                angle = (float) (mRandom.nextFloat() * (Math.PI / 4));
+
+                float x1 = (float) (radius * Math.cos(degree + angle));
+                float y1 = (float) (radius * Math.sin(degree + angle));
+                float x2 = (float) (radius * Math.cos(degree - angle));
+                float y2 = (float) (radius * Math.sin(degree - angle));
+
+                Path decoratePath = new Path();
+
+                decoratePath.moveTo(x, y);
+                decoratePath.lineTo(x - x1, y - y1);
+                decoratePath.moveTo(x, y);
+                decoratePath.lineTo(x - x2, y - y2);
+
+                float drawX = mRandom.nextFloat() * (radius / 2);
+                float notDrawX = mRandom.nextFloat() * (radius / 2);
+
+                DashPathEffect dashPathEffect = new DashPathEffect(
+                        new float[]{drawX, notDrawX}, //必须为偶数，奇数位的值表示画几个像素，偶数位的值表示空白几个像素(画20空5，画5空10)
+                        0); //整个虚线的偏移值
+                paint.setPathEffect(dashPathEffect);
+                canvas.drawPath(decoratePath, paint);
+            }
+        }
+    }
+
+    public static class CircleDecorate implements Decorate {
+        float radius = 8;
+        @Override
+        public void drawDecoratePath(Canvas canvas, float[] pos, float[] tan, Paint paint) {
+            float x = pos[0];
+            float y = pos[1];
+
+            canvas.drawCircle(x + tan[0] * radius, y + tan[1] * radius, radius, paint);
+        }
     }
 
     public void startAnim() {
