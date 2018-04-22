@@ -59,7 +59,7 @@ public class GalleryAdapter extends RecyclerView.Adapter{
                     .load((String) mUrls.get(position ))
                     .apply(options)
                     .into(viewHolder.mImageView);
-        Log.d(TAG, "onBindViewHolder position=" + position);
+//        Log.d(TAG, "onBindViewHolder position=" + position);
     }
 
     @Override

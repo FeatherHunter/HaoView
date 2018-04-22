@@ -59,6 +59,19 @@ public class TextPathView extends AppCompatTextView {
      */
     Decorate mDecorate;
 
+    /**
+     * 是否异步
+     */
+    boolean isAsynced = false;
+
+    public boolean isAsynced() {
+        return isAsynced;
+    }
+
+    public void setAsynced(boolean asynced) {
+        isAsynced = asynced;
+    }
+
     public void setDecorate(Decorate decorate) {
         mDecorate = decorate;
     }
@@ -131,36 +144,75 @@ public class TextPathView extends AppCompatTextView {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        //1. 结束的长度
-        float stopDistance = mLengthSum * mProgress;
-        //2. 配置好pathmeasure
-        mPathMeasure.setPath(mSrcPath, false);
-        //3.
-        mDstPath.reset();
-        while (stopDistance > mPathMeasure.getLength()) {
-            stopDistance -= mPathMeasure.getLength();
-            mPathMeasure.getSegment(0, mPathMeasure.getLength(), mDstPath, true);
-            if (!mPathMeasure.nextContour()) {
-                break;
+        if(isAsynced){
+            //2. 配置好pathmeasure
+            mPathMeasure.setPath(mSrcPath, false);
+            //3.
+            mDstPath.reset();
+            Path tempPath = new Path();
+            while (true) {
+                tempPath.reset();
+                //1. 该段Segement应该停止的距离
+                float stopDistance = mPathMeasure.getLength() * mProgress;
+                //2. 将该段(0~stop)的片段路径存入到tempPath中
+                mPathMeasure.getSegment(0, stopDistance, tempPath, true);
+                //3. 存入到总目标路径中
+                mDstPath.addPath(tempPath);
+                /**
+                 * 4. 绘制装饰品
+                 */
+                float[] pos = new float[2];
+                float[] tan = new float[2];
+                //返回当前片段的(x,y点)和正切
+                mPathMeasure.getPosTan(stopDistance, pos, tan);
+                //绘制装饰品
+                if(mDecorate != null && mProgress > 0 && mProgress < 1f){
+                    mDecorate.drawDecoratePath(canvas, pos, tan, mPaint);
+                }
+                //5. 不存在下个片段就退出
+                if (!mPathMeasure.nextContour()) {
+                    break;
+                }
             }
-        }
-        mPathMeasure.getSegment(0, stopDistance, mDstPath, true);
-        float[] pos = new float[2];
-        float[] tan = new float[2];
-        //返回当前片段的(x,y点)和正切
-        mPathMeasure.getPosTan(stopDistance, pos, tan);
+            //6. 绘制整个路径
+            mPaint.reset();
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStrokeWidth(mStrokeWidth);
+            mPaint.setColor(getCurrentTextColor());
+            mPaint.setAntiAlias(true);
+            canvas.drawPath(mDstPath, mPaint);
+        }else{
+            //1. 结束的长度
+            float stopDistance = mLengthSum * mProgress;
+            //2. 配置好pathmeasure
+            mPathMeasure.setPath(mSrcPath, false);
+            //3.
+            mDstPath.reset();
+            while (stopDistance > mPathMeasure.getLength()) {
+                stopDistance -= mPathMeasure.getLength();
+                mPathMeasure.getSegment(0, mPathMeasure.getLength(), mDstPath, true);
+                if (!mPathMeasure.nextContour()) {
+                    break;
+                }
+            }
+            mPathMeasure.getSegment(0, stopDistance, mDstPath, true);
+            float[] pos = new float[2];
+            float[] tan = new float[2];
+            //返回当前片段的(x,y点)和正切
+            mPathMeasure.getPosTan(stopDistance, pos, tan);
 
-        if(mDecorate != null && mProgress > 0 && mProgress < 1f){
-            mDecorate.drawDecoratePath(canvas, pos, tan, mPaint);
-        }
+            if(mDecorate != null && mProgress > 0 && mProgress < 1f){
+                mDecorate.drawDecoratePath(canvas, pos, tan, mPaint);
+            }
 
-        //4. 绘制
-        mPaint.reset();
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setStrokeWidth(mStrokeWidth);
-        mPaint.setColor(getCurrentTextColor());
-        mPaint.setAntiAlias(true);
-        canvas.drawPath(mDstPath, mPaint);
+            //4. 绘制
+            mPaint.reset();
+            mPaint.setStyle(Paint.Style.STROKE);
+            mPaint.setStrokeWidth(mStrokeWidth);
+            mPaint.setColor(getCurrentTextColor());
+            mPaint.setAntiAlias(true);
+            canvas.drawPath(mDstPath, mPaint);
+        }
     }
 
     public interface Decorate{
@@ -193,7 +245,7 @@ public class TextPathView extends AppCompatTextView {
 
     public static class FireDecorate implements Decorate {
         float angle = (float) (Math.PI / 4);
-        float radius = 10;
+        float radius = 15;
         int count = 2;
         Random mRandom = new Random();
         @Override
@@ -242,12 +294,47 @@ public class TextPathView extends AppCompatTextView {
         }
     }
 
+    public static class PenDecorate implements Decorate {
+        @Override
+        public void drawDecoratePath(Canvas canvas, float[] pos, float[] tan, Paint paint) {
+            float x = pos[0];
+            float y = pos[1];
+
+            canvas.save();
+            canvas.rotate(30, x, y);
+            Path path = new Path();
+            path.moveTo(x, y);
+            path.lineTo(x - 30, y - 30);
+            path.lineTo(x + 30, y - 30);
+            path.lineTo(x, y);
+            canvas.drawPath(path, paint);
+            canvas.drawRect(x - 30, y - 30 - 60, x + 30, y - 30, paint);
+            canvas.restore();
+        }
+    }
+
     public void startAnim() {
+        float start = 0;
+        float end = 1f;
+        if(isTraverse){
+            start = 1f;
+            end = 0f;
+        }
         ObjectAnimator objectAnimator
                 = ObjectAnimator.ofFloat(TextPathView.this, "Progress",
-                0, 1f);
+                start, end);
         objectAnimator.setDuration(mDuration);
         objectAnimator.start();
+    }
+
+    boolean isTraverse = false;
+
+    public boolean isTraverse() {
+        return isTraverse;
+    }
+
+    public void setTraverse(boolean traverse) {
+        isTraverse = traverse;
     }
 }
 

@@ -41,7 +41,7 @@ public class CarouselActivity extends AppCompatActivity {
         mRecyclerView.setDotMarginDp(8f);
         mRecyclerView.setAdapter(new GalleryAdapter(this, mImgUrls));
         new HaoPagerSnapHelper().attachToRecyclerView(mRecyclerView);
-        mRecyclerView.startLoop(2, TimeUnit.SECONDS);
+        mRecyclerView.startLoop(3, TimeUnit.SECONDS);
     }
 
     public void initData() {
