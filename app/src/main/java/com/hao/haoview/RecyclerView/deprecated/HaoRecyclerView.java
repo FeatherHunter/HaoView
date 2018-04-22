@@ -1,4 +1,4 @@
-package com.hao.haoview.deprecated;
+package com.hao.haoview.RecyclerView.deprecated;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -20,7 +20,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
-import com.hao.haoview.ademo.RecyclerViewAdpater;
+import com.hao.haoview.demo.RecyclerViewAdpater;
 import com.hao.haoview.util.OsUtil;
 
 import org.jetbrains.annotations.NotNull;

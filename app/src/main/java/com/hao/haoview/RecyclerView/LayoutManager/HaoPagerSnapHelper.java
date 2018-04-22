@@ -21,6 +21,8 @@ public class HaoPagerSnapHelper extends SnapHelper {
     @Nullable
     private HaoOrientationHelper mHorizontalHelper;
 
+    OrientationHelper mOrientationHelper;
+
     /**
      * 返回x，y方向实际需要滑动的距离
      * @param layoutManager

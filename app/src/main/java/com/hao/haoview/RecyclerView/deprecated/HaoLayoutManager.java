@@ -1,4 +1,4 @@
-package com.hao.haoview.deprecated;
+package com.hao.haoview.RecyclerView.deprecated;
 
 import android.content.Context;
 import android.support.v7.widget.*;

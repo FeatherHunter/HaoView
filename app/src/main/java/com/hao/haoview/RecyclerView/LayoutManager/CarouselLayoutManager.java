@@ -4,22 +4,19 @@ import android.content.Context;
 import android.view.View;
 
 /**
- * An implementation of {@link ViewPagerLayoutManager}
- * which layouts items like carousel
+ * 轮播图的LayoutManager {@link ViewPagerLayoutManager}
  */
-
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class CarouselLayoutManager extends ViewPagerLayoutManager {
 
-    private int itemSpace;
-    private float minScale;
-    private float moveSpeed;
+    private static final float DEFAULT_SPEED = 1f; //默认速度
+    private static final float MIN_SCALE = 0.5f;
+    private static final float INVALID_NUM = -1f; //非法数值(缩放，旋转)
 
-    public CarouselLayoutManager(Context context, int orientation, float scale, boolean reverseLayout){
-        this(new Builder(context, 0).setOrientation(orientation).setReverseLayout(reverseLayout));
-        setMinScale(scale);
-        setItemSpace((int)(((1f - scale) / 2f) * mDecoratedMeasurement));
-    }
+    private int itemSpace;
+    private float minScale = INVALID_NUM;
+    private float moveSpeed;
+    private float minRotate = INVALID_NUM;
 
     public CarouselLayoutManager(Context context, int itemSpace) {
         this(new Builder(context, itemSpace));
@@ -63,6 +60,14 @@ public class CarouselLayoutManager extends ViewPagerLayoutManager {
         return moveSpeed;
     }
 
+    public float getMinRotate() {
+        return minRotate;
+    }
+
+    public void setMinRotate(float minRotate) {
+        this.minRotate = minRotate;
+    }
+
     public void setItemSpace(int itemSpace) {
         assertNotInLayoutOrScroll(null);
         if (this.itemSpace == itemSpace) return;
@@ -94,14 +99,31 @@ public class CarouselLayoutManager extends ViewPagerLayoutManager {
 
     @Override
     protected float setInterval() {
-        return (mDecoratedMeasurement - itemSpace);
+        return (mDecoratedMeasurement + itemSpace);
     }
 
     @Override
     protected void setItemViewProperty(View itemView, float targetOffset) {
         float scale = calculateScale(targetOffset + mSpaceMain);
-        itemView.setScaleX(scale);
-        itemView.setScaleY(scale);
+
+        float poportion = calculatePoportion(targetOffset + mSpaceMain);
+
+        if(minScale != INVALID_NUM){
+            itemView.setScaleX(scale);
+            itemView.setScaleY(scale);
+        }
+        if(minRotate != INVALID_NUM){
+            /**
+             * 水平布局进行旋转
+             */
+            if(getOrientation() == HORIZONTAL){
+                itemView.setPivotX(targetOffset > 0 ? 0 : mDecoratedMeasurement);
+                itemView.setPivotY(mDecoratedMeasurementInOther * 0.5f);
+                itemView.setRotationY(45 * (1 - 0.5f) * poportion);
+            }else{
+
+            }
+        }
     }
 
     @Override
@@ -120,14 +142,18 @@ public class CarouselLayoutManager extends ViewPagerLayoutManager {
         return (minScale - 1) * deltaX / (mHaoOrientationHelper.getTotalSpace() / 2f) + 1f;
     }
 
+    private float calculatePoportion(float x){
+        float deltaX = x - (mHaoOrientationHelper.getTotalSpace() - mDecoratedMeasurement) / 2f;
+        return deltaX / (mHaoOrientationHelper.getTotalSpace() / 2f);
+    }
+
     public static class Builder {
-        private static final float DEFAULT_SPEED = 1f;
-        private static final float MIN_SCALE = 0.5f;
 
         private Context context;
         private int itemSpace;
         private int orientation;
         private float minScale;
+        private float minRotate;
         private float moveSpeed;
         private int maxVisibleItemCount;
         private boolean reverseLayout;
@@ -138,6 +164,7 @@ public class CarouselLayoutManager extends ViewPagerLayoutManager {
             this.context = context;
             orientation = HORIZONTAL;
             minScale = MIN_SCALE;
+            minRotate = INVALID_NUM;
             this.moveSpeed = DEFAULT_SPEED;
             reverseLayout = false;
             maxVisibleItemCount = ViewPagerLayoutManager.DETERMINE_BY_MAX_AND_MIN;
@@ -151,6 +178,10 @@ public class CarouselLayoutManager extends ViewPagerLayoutManager {
 
         public Builder setMinScale(float minScale) {
             this.minScale = minScale;
+            return this;
+        }
+        public Builder setMinRotate(float minRotate){
+            this.minRotate = minRotate;
             return this;
         }
 

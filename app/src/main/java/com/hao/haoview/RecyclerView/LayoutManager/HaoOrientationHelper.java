@@ -266,16 +266,16 @@ public abstract class HaoOrientationHelper {
             public int getDecoratedMeasurement(View view) {
                 final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams)
                         view.getLayoutParams();
-                return mLayoutManager.getDecoratedMeasuredWidth(view) + params.leftMargin
-                        + params.rightMargin;
+                return (int) ((mLayoutManager.getDecoratedMeasuredWidth(view) + params.leftMargin
+                                        + params.rightMargin) );
             }
 
             @Override
             public int getDecoratedMeasurementInOther(View view) {
                 final RecyclerView.LayoutParams params = (RecyclerView.LayoutParams)
                         view.getLayoutParams();
-                return mLayoutManager.getDecoratedMeasuredHeight(view) + params.topMargin
-                        + params.bottomMargin;
+                return (int) ((mLayoutManager.getDecoratedMeasuredHeight(view) + params.topMargin
+                                        + params.bottomMargin));
             }
 
             @Override

@@ -5,12 +5,16 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
 
+import com.hao.haoview.R;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import static android.support.v7.widget.RecyclerView.NO_POSITION;
 
@@ -83,6 +87,16 @@ public abstract class ViewPagerLayoutManager extends LinearLayoutManager {
     private boolean mSmoothScrollbarEnabled = true;
 
     /**
+     * @date 2018/4/22
+     * @Dsecription: Used to make other item visible。
+     *  必须0~0.5f
+     */
+    private float mOtherItemVisibleProportion = 0;
+    public void setOtherItemVisibleProportion(float otherItemVisibleProportion) {
+        mOtherItemVisibleProportion = otherItemVisibleProportion;
+    }
+
+    /**
      * When LayoutManager needs to scroll to a position, it sets this variable and requests a
      * layout which will check this variable and re-layout accordingly.
      */
@@ -117,6 +131,8 @@ public abstract class ViewPagerLayoutManager extends LinearLayoutManager {
      * use for handle focus
      */
     private View currentFocusView;
+
+    private HashMap<String, String> mMeasuredHashMap = new HashMap<>();
 
     /**
      * @return the mInterval of each item's mOffset
@@ -336,6 +352,8 @@ public abstract class ViewPagerLayoutManager extends LinearLayoutManager {
     public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position) {
         final int offsetPosition;
 
+//        Log.d("feather", "smoothScrollToPosition");
+
         // fix wrong scroll direction when infinite enable
         if (mInfinite) {
             final int currentPosition = getCurrentPosition();
@@ -384,8 +402,22 @@ public abstract class ViewPagerLayoutManager extends LinearLayoutManager {
         }
 
         measureChildWithMargins(scrap, 0, 0);
-        mDecoratedMeasurement = mHaoOrientationHelper.getDecoratedMeasurement(scrap);
-        mDecoratedMeasurementInOther = mHaoOrientationHelper.getDecoratedMeasurementInOther(scrap);
+
+        String tempMeasurement = mMeasuredHashMap.get("mDecoratedMeasurement");
+        String tempMeasurementInOther = mMeasuredHashMap.get("mDecoratedMeasurementInOther");
+        if(tempMeasurement == null){
+            mDecoratedMeasurement = (int) (mHaoOrientationHelper.getDecoratedMeasurement(scrap)
+                    * (1f - 2 * mOtherItemVisibleProportion));
+            mDecoratedMeasurementInOther = (int) (mHaoOrientationHelper.getDecoratedMeasurementInOther(scrap)
+                    * (1f - 2 * mOtherItemVisibleProportion));
+            mMeasuredHashMap.put("mDecoratedMeasurement", mDecoratedMeasurement+"");
+            mMeasuredHashMap.put("mDecoratedMeasurementInOther", mDecoratedMeasurementInOther+"");
+
+        }else{
+            mDecoratedMeasurement = Integer.valueOf(tempMeasurement);
+            mDecoratedMeasurementInOther = Integer.valueOf(tempMeasurementInOther);
+        }
+
         mSpaceMain = (mHaoOrientationHelper.getTotalSpace() - mDecoratedMeasurement) / 2;
         if (mDistanceToBottom == INVALID_SIZE) {
             mSpaceInOther = (mHaoOrientationHelper.getTotalSpaceInOther() - mDecoratedMeasurementInOther) / 2;
@@ -654,7 +686,6 @@ public abstract class ViewPagerLayoutManager extends LinearLayoutManager {
         float lastOrderWeight = Float.MIN_VALUE;
 //        Log.i("feather", "layoutItems");
         for (int i = start; i < end; i++) {
-//            Log.i("feather", "i="+i);
             if (useMaxVisibleCount() || !removeCondition(getProperty(i) - mOffset)) {
                 // start and end base on current position,
                 // so we need to calculate the adapter position
@@ -666,6 +697,9 @@ public abstract class ViewPagerLayoutManager extends LinearLayoutManager {
                     if (delta == 0) delta = itemCount;
                     adapterPosition = itemCount - delta;
                 }
+
+//                Log.i("feather", "adapterPosition="+adapterPosition);
+
                 final View scrap = recycler.getViewForPosition(adapterPosition);
                 measureChildWithMargins(scrap, 0, 0);
                 resetViewProperty(scrap);
@@ -718,13 +752,24 @@ public abstract class ViewPagerLayoutManager extends LinearLayoutManager {
     private void layoutScrap(View scrap, float targetOffset) {
         final int left = calItemLeft(scrap, targetOffset);
         final int top = calItemTop(scrap, targetOffset);
+
+        RecyclerView.LayoutParams layoutParams = (RecyclerView.LayoutParams) scrap.getLayoutParams();
+
         if (mOrientation == VERTICAL) {
+                layoutParams.width = mDecoratedMeasurementInOther;
+                layoutParams.height = mDecoratedMeasurement;
+
             layoutDecorated(scrap, mSpaceInOther + left, mSpaceMain + top,
                     mSpaceInOther + left + mDecoratedMeasurementInOther, mSpaceMain + top + mDecoratedMeasurement);
         } else {
+                layoutParams.width = mDecoratedMeasurement;
+                layoutParams.height = mDecoratedMeasurementInOther;
+
             layoutDecorated(scrap, mSpaceMain + left, mSpaceInOther + top,
                     mSpaceMain + left + mDecoratedMeasurement, mSpaceInOther + top + mDecoratedMeasurementInOther);
         }
+        scrap.setLayoutParams(layoutParams);
+
         setItemViewProperty(scrap, targetOffset);
     }
 

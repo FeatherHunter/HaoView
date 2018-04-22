@@ -1,4 +1,4 @@
-package com.hao.haoview.ademo;
+package com.hao.haoview.demo;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;

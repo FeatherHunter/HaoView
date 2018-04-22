@@ -1,4 +1,4 @@
-package com.hao.haoview.ademo;
+package com.hao.haoview.demo;
 
 import android.content.Context;
 import android.graphics.Color;

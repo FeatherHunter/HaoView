@@ -1,19 +1,15 @@
-package com.hao.haoview.ademo;
+package com.hao.haoview.demo;
 
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
 import android.view.View;
 import android.widget.Button;
 
 import com.hao.haoview.R;
-import com.hao.haoview.RecyclerView.LayoutManager.HaoPagerSnapHelper;
 import com.hao.haoview.RecyclerView.widget.CarouselRecyclerView;
-import com.hao.haoview.deprecated.HaoRecyclerView;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends Activity {
     ArrayList<String> mDataList = new ArrayList<>();
@@ -26,12 +22,25 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
 
         Button textButton = findViewById(R.id.text_path_btn);
-        Button rvButton = findViewById(R.id.carousel_rv_btn);
+        Button galleryButton = findViewById(R.id.gallery_rv_btn);
+        Button carouselButton = findViewById(R.id.carousel_rv_btn);
 
         textButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 startActivity(new Intent(MainActivity.this, TextPathActivity.class));
+            }
+        });
+        galleryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, GalleryActivity.class));
+            }
+        });
+        carouselButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, CarouselActivity.class));
             }
         });
 

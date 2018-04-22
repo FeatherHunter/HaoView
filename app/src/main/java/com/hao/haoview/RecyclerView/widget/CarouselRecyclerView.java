@@ -29,7 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class CarouselRecyclerView extends RecyclerView {
     private CarouselLayoutManager mCarouselLayoutManager;
     private Context mContext;
-    private boolean DEBUG = true;
+    private boolean DEBUG = false;
     /**
      * 存放数据
      */
@@ -38,6 +38,11 @@ public class CarouselRecyclerView extends RecyclerView {
      * 当前Item的位置
      */
     private int mCurItemPosition = 0;
+
+    public int getCurItemPosition() {
+        return mCurItemPosition;
+    }
+
     /**
      *     默认为没有循环点
      */
@@ -77,6 +82,15 @@ public class CarouselRecyclerView extends RecyclerView {
 
     private int mDotSelectColor = Color.parseColor("#4fc3f7");
     private int mDotOtherColor = Color.WHITE;
+    private float mDotMarginDp = 10f;
+
+    public float getDotMarginDp() {
+        return mDotMarginDp;
+    }
+
+    public void setDotMarginDp(float dotMarginDp) {
+        mDotMarginDp = dotMarginDp;
+    }
 
     public void setDotSelectColor(int dotSelectColor) {
         mDotSelectColor = dotSelectColor;
@@ -85,6 +99,15 @@ public class CarouselRecyclerView extends RecyclerView {
     public void setDotOtherColor(int dotOtherColor) {
         mDotOtherColor = dotOtherColor;
     }
+
+    // 9-是否开启高斯模糊
+    private boolean isBlured = false; //默认关闭
+    //设置是否使用背景模糊循环
+    public CarouselRecyclerView setBlurBackground(boolean isBlured) {
+        this.isBlured = isBlured;
+        return this;
+    }
+
 
     /**
      * 绘制底部文字内容
@@ -95,6 +118,7 @@ public class CarouselRecyclerView extends RecyclerView {
     private int mBottomTextColor = Color.parseColor("#ffffff");
     private float mBottomTextSizeDp = 10f;
     private float mBottomTextMarginDp = 1f;
+
 
     public void setBottomTextMarginDp(float bottomTextMarginDp) {
         mBottomTextMarginDp = bottomTextMarginDp;
@@ -147,12 +171,10 @@ public class CarouselRecyclerView extends RecyclerView {
         mCarouselLayoutManager.setMoveSpeed(1f);
         mCarouselLayoutManager.setMinScale(1f);
         this.setLayoutManager(mCarouselLayoutManager);
-        //默认轮播点在中央正下方
-        setDotPosition(DOT_BOTTOM_RIGHT);
         //轮播点半径
-        setDotRadiusDp(2);
+        setDotRadiusDp(3f);
         //轮播点间隔
-        setDotIntervalDp(1);
+        setDotIntervalDp(2f);
     }
 
     public void setDotPosition(@DotDirection int dotPosition) {
@@ -186,7 +208,8 @@ public class CarouselRecyclerView extends RecyclerView {
 
         // 获得转换后的px值
         float circleRadiusPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDotRadiusDp, mContext.getResources().getDisplayMetrics());
-        float dorIntervalPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDotIntervalDp, mContext.getResources().getDisplayMetrics());
+        float dotIntervalPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDotIntervalDp, mContext.getResources().getDisplayMetrics());
+        float dotMarginPx = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, mDotMarginDp, mContext.getResources().getDisplayMetrics());
 
         int itemCount = getLayoutManager().getItemCount();
 
@@ -233,11 +256,11 @@ public class CarouselRecyclerView extends RecyclerView {
                 break;
             case DOT_BOTTOM_CENTER:
 
-                float cy = height - 2 * circleRadiusPx;
+                float cy = height - dotMarginPx;
 
                 int count = itemCount;
-                float leftDistance = (count / 2 + (count % 2) * 0.5f) * (dorIntervalPx + circleRadiusPx);
-                float oneDistance = (2 * circleRadiusPx) + dorIntervalPx;
+                float leftDistance = (count / 2 + (count % 2) * 0.5f) * (dotIntervalPx + circleRadiusPx);
+                float oneDistance = (2 * circleRadiusPx) + dotIntervalPx;
 
                 float startCx = width / 2 - leftDistance;
 
@@ -264,12 +287,12 @@ public class CarouselRecyclerView extends RecyclerView {
                 break;
             case DOT_BOTTOM_RIGHT:
 
-                cy = height - 2 * circleRadiusPx;
+                cy = height - dotMarginPx;
 
                 count = itemCount;
 
-                leftDistance = (count * circleRadiusPx * 2) + (count - 1) * dorIntervalPx;
-                oneDistance = (2 * circleRadiusPx) + dorIntervalPx;
+                leftDistance = (count * circleRadiusPx * 2) + (count - 1) * dotIntervalPx;
+                oneDistance = (2 * circleRadiusPx) + dotIntervalPx;
 
                 startCx = width  - leftDistance;
 
@@ -310,11 +333,15 @@ public class CarouselRecyclerView extends RecyclerView {
         mDelay = delay;
         mTimeUnit = unit;
         //在切换横竖屏时进行修正
+        mCurItemPosition = ((ViewPagerLayoutManager) getLayoutManager()).getCurrentPosition();
         mScheduledFuture = mScheduledThreadPoolExecutor.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
                 mCurItemPosition++;
-                mCurItemPosition %= mCarouselLayoutManager.getItemCount();
+
+                int itemCount = mCarouselLayoutManager.getItemCount();
+                mCurItemPosition = (itemCount == 0 ? mCurItemPosition : (mCurItemPosition % mCarouselLayoutManager.getItemCount()));
+
                 CarouselRecyclerView.this.smoothScrollToPosition(mCurItemPosition);
             }
         }, delay, delay, unit);
@@ -349,7 +376,8 @@ public class CarouselRecyclerView extends RecyclerView {
                     @Override
                     public void run() {
                         mCurItemPosition++;
-                        mCurItemPosition %= mCarouselLayoutManager.getItemCount();
+                        int itemCount = mCarouselLayoutManager.getItemCount();
+                        mCurItemPosition = (itemCount == 0 ? mCurItemPosition : (mCurItemPosition % mCarouselLayoutManager.getItemCount()));
                         CarouselRecyclerView.this.smoothScrollToPosition(mCurItemPosition);
                     }
                 }, mDelay, mDelay, mTimeUnit);
@@ -376,5 +404,23 @@ public class CarouselRecyclerView extends RecyclerView {
 
     public void setDotIntervalDp(float dotIntervalDp) {
         mDotIntervalDp = dotIntervalDp;
+    }
+
+    @Override
+    public void onDraw(Canvas c) {
+        super.onDraw(c);
+//        if(mBackgroundSetter != null){
+//            mBackgroundSetter.setBackground(mCurItemPosition);
+//        }
+    }
+
+    public interface BackgroundSetter{
+        public void setBackground(int position);
+    }
+
+    BackgroundSetter mBackgroundSetter;
+
+    public void setBackgroundSetter(BackgroundSetter backgroundSetter) {
+        mBackgroundSetter = backgroundSetter;
     }
 }
