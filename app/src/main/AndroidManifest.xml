@@ -20,7 +20,10 @@
         </activity>
         <activity android:name=".demo.TextPathActivity" />
         <activity android:name=".demo.GalleryActivity" />
-        <activity android:name=".demo.CarouselActivity"></activity>
+        <activity android:name=".demo.CarouselActivity" />
+        <activity android:name=".demo.BackgroundLineViewActivity" />
+        <activity android:name=".demo.DrawableActivity" />
+        <activity android:name=".demo.SVGActivity"></activity>
     </application>
 
 </manifest>

@@ -1,16 +1,8 @@
 package com.hao.haoview.demo;
 
-import android.graphics.drawable.Drawable;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.RequestOptions;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
 import com.hao.haoview.R;
 import com.hao.haoview.RecyclerView.LayoutManager.CarouselLayoutManager;
 import com.hao.haoview.RecyclerView.LayoutManager.HaoPagerSnapHelper;
@@ -18,8 +10,6 @@ import com.hao.haoview.RecyclerView.LayoutManager.ViewPagerLayoutManager;
 import com.hao.haoview.RecyclerView.widget.CarouselRecyclerView;
 
 import java.util.ArrayList;
-
-import jp.wasabeef.glide.transformations.BlurTransformation;
 
 public class GalleryActivity extends AppCompatActivity {
 
@@ -39,11 +29,11 @@ public class GalleryActivity extends AppCompatActivity {
         mRecyclerView = findViewById(R.id.gallert_activity_recyclerview);
         CarouselLayoutManager layoutManager = new CarouselLayoutManager(this, 0, ViewPagerLayoutManager.HORIZONTAL);
         layoutManager.setMinScale(0.8f);
-//        layoutManager.setMinRotate(45);
         layoutManager.setInfinite(true);
         layoutManager.setOtherItemVisibleProportion(0.15f);
         mRecyclerView.setLayoutManager(layoutManager);
         mRecyclerView.setAdapter(new GalleryAdapter(this, mImgUrls));
+
 
 //        // RecyclerView背景的高斯模糊
 //        String url = mImgUrls.get(0);
@@ -107,6 +97,5 @@ public class GalleryActivity extends AppCompatActivity {
         mImgUrls.add("http://www.lzshuli.com/game_images/110438130.jpeg");
         mImgUrls.add("http://www.lzshuli.com/game_images/110438132.jpeg");
         mImgUrls.add("https://i0download.pchome.net/t_600x1024/g1/M00/11/14/ooYBAFYWKQ2IPa1wAAHWY8yPBrgAACuFgFoeawAAdZ7486.jpg");
-
     }
 }

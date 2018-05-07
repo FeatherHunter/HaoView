@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:text="BitmapDrawable"
+            android:gravity="center"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="125dp"
+                android:layout_height="125dp"
+                android:background="@drawable/ic_launcher"/>
+
+            <View
+                android:layout_width="125dp"
+                android:layout_height="125dp"
+                android:background="@drawable/bitmapdrawable"/>
+
+            <View
+                android:id="@+id/drawable_activity_bitmap_view2"
+                android:layout_width="125dp"
+                android:layout_height="125dp"
+                android:background="@drawable/bitmapdrawable"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="TransitionDrawable"
+            android:gravity="center"/>
+        <Button
+            android:id="@+id/drawable_activity_transition_btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/transition"/>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="InsetDrawable"
+            android:gravity="center"/>
+        <Button
+            android:id="@+id/drawable_activity_inset_btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/insetdrawable"/>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="ScaleDrawable"
+            android:gravity="center"/>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:orientation="horizontal">
+
+            <View
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@drawable/ic_launcher"/>
+
+            <View
+                android:id="@+id/drawable_activity_scale_view"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:background="@drawable/scaledrawable"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="ClipDrawable"
+            android:gravity="center"/>
+        <ImageView
+            android:id="@+id/drawable_activity_clip_imgaeview"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:src="@drawable/clipdrawable"/>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="RotateDrawable"
+            android:gravity="center"/>
+        <Button
+            android:id="@+id/drawable_activity_rotate_btn"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/rotatedrawable"/>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="AnimationDrawable"
+            android:gravity="center"/>
+        <ImageView
+            android:id="@+id/drawable_activity_animation_imageview"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:src="@drawable/animationdrawable"/>
+
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="ShapeDrawable"
+            android:gravity="center"/>
+
+        <ImageView
+            android:id="@+id/drawable_activity_shapedrawable_imageview"
+            android:layout_width="100dp"
+            android:layout_height="200dp"/>
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:background="@drawable/rippledrawable"/>
+
+    </LinearLayout>
+
+</ScrollView>

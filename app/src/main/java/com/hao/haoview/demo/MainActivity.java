@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 
 import com.hao.haoview.R;
 import com.hao.haoview.RecyclerView.widget.CarouselRecyclerView;
@@ -24,6 +25,10 @@ public class MainActivity extends Activity {
         Button textButton = findViewById(R.id.text_path_btn);
         Button galleryButton = findViewById(R.id.gallery_rv_btn);
         Button carouselButton = findViewById(R.id.carousel_rv_btn);
+        Button backgroundLineButton = findViewById(R.id.background_line_btn);
+        Button drawableButton = findViewById(R.id.drawable_btn);
+        Button svgButton = findViewById(R.id.svg_btn);
+
 
         textButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -43,7 +48,26 @@ public class MainActivity extends Activity {
                 startActivity(new Intent(MainActivity.this, CarouselActivity.class));
             }
         });
+        backgroundLineButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, BackgroundLineViewActivity.class));
+            }
+        });
 
+        drawableButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, DrawableActivity.class));
+            }
+        });
+
+        svgButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, SVGActivity.class));
+            }
+        });
 //        HaoToggleButton button = findViewById(R.id.button);
 //        button.setOnToggleSelectListener(new HaoToggleButton.OnToggleSelectListener() {
 //            @Override

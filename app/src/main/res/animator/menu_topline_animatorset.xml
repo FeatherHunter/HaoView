@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:ordering="sequentially">
+    <objectAnimator
+        android:duration="200"
+        android:propertyName="pathData"
+        android:valueFrom="M 30,30 L 45,30 60,30"
+        android:valueTo="M 60,30 L 60,30 60,30"
+        android:valueType="pathType"
+        android:interpolator="@android:interpolator/accelerate_decelerate">
+    </objectAnimator>
+
+    <objectAnimator
+        android:duration="100"
+        android:propertyName="pathData"
+        android:valueFrom="M 60,30 Q 60,30,60,30"
+        android:valueTo="M 60,30 Q 85,30,85,45"
+        android:valueType="pathType"
+        android:interpolator="@android:interpolator/accelerate_decelerate">
+    </objectAnimator>
+
+    <objectAnimator
+        android:duration="4000"
+        android:propertyName="rotation"
+        android:valueFrom="0"
+        android:valueTo="360" >
+    </objectAnimator>
+</set>
