@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/menu_arrow_uncheck_vector">
+
+    <target
+        android:animation="@animator/menu_arrow_uncheck_rotate_animator"
+        android:name="menu_group"></target>
+
+    <target
+        android:animation="@animator/menu_arrow_uncheck_line_animator"
+        android:name="path"></target>
+
+</animated-vector>

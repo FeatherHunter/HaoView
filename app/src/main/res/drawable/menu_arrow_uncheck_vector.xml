@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportHeight="75"
+    android:viewportWidth="90">
+    <group
+        android:name="menu_group"
+        android:pivotX="45"
+        android:pivotY="37.5"
+        android:rotation="0">
+        <path
+            android:name="path"
+            android:fillColor="#ffffff"
+            android:pathData="M 45,10 L 70,35 60,35 40,15 45,10
+                              M 20,35 L 70,35 72.5,37.5 70,40 20,40, 20,35
+                              M 40,60 L 60,40 70,40 45,65 40,60"
+            android:strokeColor="#ffffff"/>
+    </group>
+
+</vector>

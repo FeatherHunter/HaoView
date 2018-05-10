@@ -11,7 +11,12 @@
         android:id="@+id/svg_activity_animatedvectordrawable_img"
         android:layout_width="200dp"
         android:layout_height="200dp"
-        android:src="@drawable/menu_animated_vector_drawable"
+        android:src="@drawable/menu_arrow_check_vector_animated"
         android:background="@color/colorPrimary"/>
+
+    <Button
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="@drawable/animated_statelist_drawable"/>
 
 </LinearLayout>

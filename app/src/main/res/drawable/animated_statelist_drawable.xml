@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-selector
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 为每种状态提供不同的图片 -->
+    <item android:id="@+id/pressed" android:drawable="@drawable/ic_battery_charging_full_black_24dp"
+        android:state_pressed="true"/>
+    <item android:id="@+id/unpressed" android:drawable="@drawable/ic_battery_charging_0_black_24dp"
+        android:state_pressed="false"/>
+    <item android:id="@+id/mydefault"
+        android:drawable="@drawable/ic_launcher"/>
+
+    <!-- 指定转场效果 -->
+    <transition android:fromId="@+id/unpressed" android:toId="@+id/pressed">
+        <animation-list>
+            <item android:duration="15" android:drawable="@drawable/ic_battery_charging_20_black_24dp"/>
+            <item android:duration="15" android:drawable="@drawable/ic_battery_charging_30_black_24dp"/>
+            <item android:duration="15" android:drawable="@drawable/ic_battery_charging_50_black_24dp"/>
+            <item android:duration="15" android:drawable="@drawable/ic_battery_charging_60_black_24dp"/>
+            <item android:duration="15" android:drawable="@drawable/ic_battery_charging_80_black_24dp"/>
+            <item android:duration="15" android:drawable="@drawable/ic_battery_charging_90_black_24dp"/>
+            <item android:duration="15" android:drawable="@drawable/ic_battery_charging_full_black_24dp"/>
+        </animation-list>
+    </transition>
+
+
+</animated-selector>
